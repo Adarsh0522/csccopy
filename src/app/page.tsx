@@ -59,11 +59,8 @@ export default function LoginPage() {
         <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-100/60 blur-[120px] pointer-events-none" />
 
         {/* Logo Header */}
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-md">
-            <Layers className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-2xl font-black text-slate-900 tracking-tight">CSCCopy</span>
+        <div className="relative z-10 h-14 w-56 bg-transparent overflow-visible mt-2">
+          <img src="/logo-horizontal.jpg" alt="CSCCopy Logo" className="w-full h-full object-contain object-left scale-[1.4] origin-left mix-blend-multiply" />
         </div>
 
         {/* Main Marketing Content */}
@@ -140,11 +137,8 @@ export default function LoginPage() {
       <div className="w-full lg:w-[40%] flex flex-col justify-center items-center p-6 sm:p-12 relative bg-white">
         
         {/* Mobile Logo Only */}
-        <div className="lg:hidden absolute top-8 left-8 flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-md">
-            <Layers className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-xl font-bold text-slate-900">CSCCopy</span>
+        <div className="lg:hidden absolute top-6 left-6 h-12 w-40 bg-transparent overflow-visible">
+          <img src="/logo-horizontal.jpg" alt="CSCCopy Logo" className="w-full h-full object-contain object-left scale-[1.2] origin-left mix-blend-multiply" />
         </div>
 
         <div className="w-full max-w-[420px] mt-16 lg:mt-0">
