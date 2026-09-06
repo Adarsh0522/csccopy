@@ -24,7 +24,7 @@ export function CorrectionInput({
       <div className="flex items-center justify-between mb-1">
         <label className={cn(
           "text-[12px] font-bold transition-colors uppercase tracking-wide",
-          isSelected ? "text-blue-700" : "text-slate-500"
+          isSelected ? "text-emerald-700" : "text-gray-500"
         )}>
           {label} {props.required && <span className="text-red-500">*</span>}
         </label>
@@ -36,8 +36,8 @@ export function CorrectionInput({
           className={cn(
             "flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider transition-all active:scale-95",
             isSelected 
-              ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" 
-              : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+              ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20" 
+              : "bg-gray-100 text-gray-400 hover:bg-gray-200"
           )}
         >
           {isSelected && <Check className="w-3 h-3" />}
@@ -51,13 +51,13 @@ export function CorrectionInput({
           {...props}
           disabled={!isSelected}
           className={cn(
-            "w-full h-11 px-4 bg-white border rounded-lg transition-all outline-none text-[14px] uppercase placeholder:text-slate-400 placeholder:uppercase",
+            "w-full h-11 px-4 bg-white border rounded-lg transition-all outline-none text-[14px] uppercase placeholder:text-gray-400 placeholder:uppercase",
             error
               ? "border-red-500 focus:border-red-500"
               : isSelected 
-                ? "border-blue-500 ring-2 ring-blue-500/10 focus:ring-blue-500/20" 
-                : "border-slate-200 opacity-60 grayscale-[0.5]",
-            !isSelected && "bg-slate-50/50 cursor-not-allowed"
+                ? "border-emerald-500 ring-2 ring-emerald-500/10 focus:ring-emerald-500/20" 
+                : "border-gray-200 opacity-60 grayscale-[0.5]",
+            !isSelected && "bg-gray-50/50 cursor-not-allowed"
           )}
         />
         {!isSelected && (
@@ -98,7 +98,7 @@ export function CorrectionSelect({
       <div className="flex items-center justify-between mb-1">
         <label className={cn(
           "text-[12px] font-bold transition-colors uppercase tracking-wide",
-          isSelected ? "text-blue-700" : "text-slate-500"
+          isSelected ? "text-emerald-700" : "text-gray-500"
         )}>
           {label} {props.required && <span className="text-red-500">*</span>}
         </label>
@@ -108,7 +108,7 @@ export function CorrectionSelect({
           onClick={onToggle}
           className={cn(
             "flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider transition-all",
-            isSelected ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400"
+            isSelected ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-400"
           )}
         >
           {isSelected && <Check className="w-3 h-3" />}
@@ -126,9 +126,9 @@ export function CorrectionSelect({
             error
               ? "border-red-500"
               : isSelected 
-                ? "border-blue-500 ring-2 ring-blue-500/10" 
-                : "border-slate-200 opacity-60",
-            !isSelected && "bg-slate-50/50 cursor-not-allowed"
+                ? "border-emerald-500 ring-2 ring-emerald-500/10" 
+                : "border-gray-200 opacity-60",
+            !isSelected && "bg-gray-50/50 cursor-not-allowed"
           )}
         >
           <option value="">Select {label}</option>
@@ -138,7 +138,7 @@ export function CorrectionSelect({
             </option>
           ))}
         </select>
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>

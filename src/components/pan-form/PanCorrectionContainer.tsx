@@ -53,7 +53,7 @@ function CollapsibleStep({
       ref={stepRef}
       className={cn(
         "bg-white border transition-all duration-300 rounded-xl overflow-hidden",
-        isOpen ? "border-emerald-200 ring-4 ring-emerald-500/10 shadow-md" : "border-slate-200 shadow-sm",
+        isOpen ? "border-emerald-200 ring-4 ring-emerald-500/10 shadow-md" : "border-gray-200 shadow-sm",
         isCompleted && !isOpen ? "bg-white" : ""
       )}
     >
@@ -62,27 +62,27 @@ function CollapsibleStep({
         onClick={onToggle}
         className={cn(
           "flex items-center justify-between p-5 cursor-pointer transition-colors",
-          isOpen ? "bg-emerald-50 text-emerald-700" : "bg-white hover:bg-slate-50"
+          isOpen ? "bg-emerald-50 text-emerald-700" : "bg-white hover:bg-gray-50"
         )}
       >
         <div className="flex items-center gap-4">
           <div className={cn(
             "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
-            isCompleted ? "bg-blue-500 text-white" :
-              isOpen ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500"
+            isCompleted ? "bg-emerald-500 text-white" :
+              isOpen ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-500"
           )}>
             {isCompleted ? <Check className="w-4 h-4" /> : stepIndex}
           </div>
           <span className={cn(
             "text-sm font-semibold tracking-tight transition-colors",
-            isOpen ? "text-emerald-700" : "text-slate-700"
+            isOpen ? "text-emerald-700" : "text-gray-700"
           )}>
             {title}
           </span>
         </div>
         <ChevronDown className={cn(
           "w-5 h-5 transition-transform duration-300",
-          isOpen ? "rotate-180 text-emerald-700" : "text-slate-400"
+          isOpen ? "rotate-180 text-emerald-700" : "text-gray-400"
         )} />
       </div>
 
@@ -92,7 +92,7 @@ function CollapsibleStep({
         isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
       )}>
         <div className="overflow-hidden">
-          <div className="p-6 pt-6 border-t border-slate-100">
+          <div className="p-6 pt-6 border-t border-gray-100">
             <div className="space-y-6">
               {children}
             </div>
@@ -111,7 +111,7 @@ function CollapsibleStep({
                     "rounded-xl px-8 py-2.5 text-sm font-semibold shadow-sm transition-all active:scale-95",
                     isValid
                       ? "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
-                      : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
                   )}
                 >
                   Continue
@@ -316,7 +316,7 @@ export function PanCorrectionContainer({ noPadding = false, initialProfile }: { 
 
   return (
     <div className={cn(
-      "w-full flex flex-col lg:flex-row gap-6 items-start bg-slate-50",
+      "w-full flex flex-col lg:flex-row gap-6 items-start bg-gray-50",
       noPadding ? "" : "pt-2 px-4 lg:px-6"
     )}>
       {/* Form Section - Center (65%) */}
@@ -384,7 +384,7 @@ export function PanCorrectionContainer({ noPadding = false, initialProfile }: { 
                   "w-full lg:w-auto flex items-center justify-center gap-2 text-white h-[48px] px-8 rounded-xl font-semibold transition-all active:scale-95 shadow-sm text-sm",
                   !isGenerating
                     ? "bg-emerald-600 hover:bg-emerald-700 cursor-pointer"
-                    : "bg-slate-300 text-slate-500 cursor-not-allowed"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 )}
               >
                 {isGenerating ? (
@@ -413,11 +413,11 @@ export function PanCorrectionContainer({ noPadding = false, initialProfile }: { 
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-[150] bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center"
               >
-                <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 flex flex-col items-center gap-6 animate-in zoom-in-95 duration-500">
+                <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200 flex flex-col items-center gap-6 animate-in zoom-in-95 duration-500">
                   <Loader2 className="w-12 h-12 text-emerald-600 animate-spin" />
                   <div className="space-y-1 text-center">
-                    <p className="text-lg font-bold text-slate-900 tracking-tight">Processing Payment & PDF</p>
-                    <p className="text-sm font-medium text-slate-500">Deducting ₹10 from CSCCopy Wallet...</p>
+                    <p className="text-lg font-bold text-gray-900 tracking-tight">Processing Payment & PDF</p>
+                    <p className="text-sm font-medium text-gray-500">Deducting ₹10 from CSCCopy Wallet...</p>
                   </div>
                 </div>
               </motion.div>
@@ -432,19 +432,19 @@ export function PanCorrectionContainer({ noPadding = false, initialProfile }: { 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                  className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
                   onClick={() => setShowSuccessModal(false)}
                 />
                 <motion.div
                   initial={{ scale: 0.95, opacity: 0, y: 10 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                  className="relative w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-xl border border-slate-200 p-8 text-center"
+                  className="relative w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-xl border border-gray-200 p-8 text-center"
                 >
                   <button
                     type="button"
                     onClick={handleFinalReset}
-                    className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all cursor-pointer"
+                    className="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -453,8 +453,8 @@ export function PanCorrectionContainer({ noPadding = false, initialProfile }: { 
                     <Check className="w-8 h-8" />
                   </div>
 
-                  <h2 className="text-xl font-bold text-slate-900 mb-2">Correction Form Generated</h2>
-                  <p className="text-slate-500 mb-8 text-sm">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Correction Form Generated</h2>
+                  <p className="text-gray-500 mb-8 text-sm">
                     ₹10 was successfully deducted from your wallet. Your PDF is ready.
                   </p>
 
@@ -470,7 +470,7 @@ export function PanCorrectionContainer({ noPadding = false, initialProfile }: { 
                     <button
                       type="button"
                       onClick={handlePrint}
-                      className="flex items-center justify-center gap-2 text-slate-700 h-[48px] rounded-xl font-semibold transition-all bg-white border border-slate-200 hover:bg-slate-50 shadow-sm"
+                      className="flex items-center justify-center gap-2 text-gray-700 h-[48px] rounded-xl font-semibold transition-all bg-white border border-gray-200 hover:bg-gray-50 shadow-sm"
                     >
                       <Printer className="w-4 h-4" />
                       Print PDF
@@ -480,7 +480,7 @@ export function PanCorrectionContainer({ noPadding = false, initialProfile }: { 
                   <button
                     type="button"
                     onClick={handleFinalReset}
-                    className="text-sm text-slate-500 font-medium hover:text-slate-700"
+                    className="text-sm text-gray-500 font-medium hover:text-gray-700"
                   >
                     Start New Application
                   </button>
@@ -493,13 +493,13 @@ export function PanCorrectionContainer({ noPadding = false, initialProfile }: { 
 
       {/* Live Preview Section - Right (35%) */}
       <div className="w-full lg:w-[380px] lg:sticky lg:top-8 h-[525px] max-h-[90vh]">
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm relative overflow-hidden flex flex-col h-full">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm relative overflow-hidden flex flex-col h-full">
           <div className="flex items-center gap-2 mb-3 px-2">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Live Preview</span>
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Live Preview</span>
           </div>
 
-          <div className="flex-1 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 relative shadow-inner flex flex-col items-center justify-center">
+          <div className="flex-1 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 relative shadow-inner flex flex-col items-center justify-center">
             {previewUrl ? (
               <div className="w-full h-full flex items-center justify-center">
                 <iframe
@@ -510,11 +510,11 @@ export function PanCorrectionContainer({ noPadding = false, initialProfile }: { 
               </div>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-3 border border-slate-200">
-                  <FileText className="w-6 h-6 text-slate-400" />
+                <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-3 border border-gray-200">
+                  <FileText className="w-6 h-6 text-gray-400" />
                 </div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Form Matrix</p>
-                <p className="text-[10px] text-slate-400 px-2">Select update fields and enter Old PAN to generate preview.</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Form Matrix</p>
+                <p className="text-[10px] text-gray-400 px-2">Select update fields and enter Old PAN to generate preview.</p>
               </div>
             )}
 

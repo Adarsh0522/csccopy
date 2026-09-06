@@ -26,8 +26,8 @@ export function ResidentialStatusSection({ register, errors, control }: SectionP
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Residential Status</p>
-        <p className="text-[12px] text-slate-500 mb-4">Select your residential status as per tax rules</p>
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Residential Status</p>
+        <p className="text-[12px] text-gray-500 mb-4">Select your residential status as per tax rules</p>
         <div className="flex flex-col gap-3">
           {statusOptions.map((status) => (
             <label
@@ -35,15 +35,15 @@ export function ResidentialStatusSection({ register, errors, control }: SectionP
               className={cn(
                 "w-full flex items-center gap-3 px-5 py-4 border rounded-2xl cursor-pointer transition-all text-[14px] font-bold",
                 residentialStatus === status.value
-                  ? "border-blue-600 bg-blue-50/10 text-blue-700 shadow-sm"
-                  : "border-slate-200 bg-white hover:border-slate-300 text-slate-600 shadow-sm"
+                  ? "border-emerald-600 bg-emerald-50/10 text-emerald-700 shadow-sm"
+                  : "border-gray-200 bg-white hover:border-gray-300 text-gray-600 shadow-sm"
               )}
             >
               <input
                 type="radio"
                 value={status.value}
                 {...register("residentialStatus")}
-                className="w-5 h-5 border-slate-300 text-blue-600 focus:ring-blue-500/20"
+                className="w-5 h-5 border-gray-300 text-emerald-600 focus:ring-emerald-500/20"
               />
               <span>{status.label}</span>
             </label>
@@ -66,7 +66,7 @@ export function ResidentialStatusSection({ register, errors, control }: SectionP
       )}
 
       {/* TIN Field (Optional) */}
-      <div className="pt-6 border-t border-slate-100">
+      <div className="pt-6 border-t border-gray-100">
         <SharedInput
           label="TAXPAYER IDENTIFICATION NUMBER (TIN)"
           placeholder="TIN IN COUNTRY OF RESIDENCE"
@@ -95,7 +95,7 @@ export function ContactIncomeSection({ register, errors, control }: SectionProps
     <div className="space-y-10">
       {/* Contact Information Row */}
       <div className="space-y-4">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Contact Information</p>
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Contact Information</p>
         <div className="flex flex-col lg:flex-row gap-4 lg:items-end">
           <div className="w-full lg:w-[80px]">
             <SharedInput
@@ -129,8 +129,8 @@ export function ContactIncomeSection({ register, errors, control }: SectionProps
       </div>
 
       {/* Landline Details Row */}
-      <div className="mt-6 pt-6 border-t border-slate-200 space-y-4">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Landline Details (Optional)</p>
+      <div className="mt-6 pt-6 border-t border-gray-200 space-y-4">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Landline Details (Optional)</p>
         <div className="flex gap-4">
           <div className="w-[120px]">
             <SharedInput
@@ -148,8 +148,8 @@ export function ContactIncomeSection({ register, errors, control }: SectionProps
       </div>
 
       {/* Source of Income Row */}
-      <div className="mt-6 pt-6 border-t border-slate-200 space-y-4">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Source of Income</p>
+      <div className="mt-6 pt-6 border-t border-gray-200 space-y-4">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Source of Income</p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {incomeOptions.map((source) => (
             <label
@@ -157,15 +157,15 @@ export function ContactIncomeSection({ register, errors, control }: SectionProps
               className={cn(
                 "w-full h-full flex items-center gap-3 px-4 py-3 border rounded-xl cursor-pointer transition-all text-[13px] font-medium",
                 incomeSource === source.value
-                  ? "border-blue-600 bg-blue-50/10 text-blue-700 shadow-sm"
-                  : "border-slate-200 bg-white hover:border-slate-300 text-slate-600"
+                  ? "border-emerald-600 bg-emerald-50/10 text-emerald-700 shadow-sm"
+                  : "border-gray-200 bg-white hover:border-gray-300 text-gray-600"
               )}
             >
               <input
                 type="radio"
                 value={source.value}
                 {...register("incomeSource")}
-                className="w-4 h-4 border-slate-300 text-blue-600 focus:ring-blue-500/20"
+                className="w-4 h-4 border-gray-300 text-emerald-600 focus:ring-emerald-500/20"
               />
               <span>{source.label}</span>
             </label>
@@ -197,18 +197,18 @@ export function ParentsSection({ register, errors, control, setValue }: SectionP
   return (
     <div className="space-y-10">
       <div className="space-y-6">
-        <div className="flex items-center justify-between bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
+        <div className="flex items-center justify-between bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
           <div>
-            <p className="text-[14px] font-semibold text-slate-900">Is mother/father a single parent?</p>
-            <p className="text-[12px] text-slate-500">Provide only one parent's name if Yes.</p>
+            <p className="text-[14px] font-semibold text-gray-900">Is mother/father a single parent?</p>
+            <p className="text-[12px] text-gray-500">Provide only one parent's name if Yes.</p>
           </div>
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-xl border border-gray-200">
             <button
               type="button"
               onClick={() => setValue?.("isSingleParent", "YES")}
               className={cn(
                 "px-8 py-2 rounded-lg text-[11px] font-bold uppercase transition-all",
-                isSingleParent === "YES" ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                isSingleParent === "YES" ? "bg-white text-emerald-600 shadow-sm" : "text-gray-400 hover:text-gray-600"
               )}
             >
               Yes
@@ -221,7 +221,7 @@ export function ParentsSection({ register, errors, control, setValue }: SectionP
               }}
               className={cn(
                 "px-8 py-2 rounded-lg text-[11px] font-bold uppercase transition-all",
-                isSingleParent === "NO" ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                isSingleParent === "NO" ? "bg-white text-emerald-600 shadow-sm" : "text-gray-400 hover:text-gray-600"
               )}
             >
               No
@@ -231,15 +231,15 @@ export function ParentsSection({ register, errors, control, setValue }: SectionP
 
         {isSingleParent === "YES" && (
           <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Select Single Parent Type</p>
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Select Single Parent Type</p>
             <div className="grid grid-cols-2 gap-4 max-w-sm">
               <label>
                 <input type="radio" value="FATHER" {...register("singleParentType")} className="hidden peer" />
-                <div className="p-3 text-center border rounded-xl cursor-pointer peer-checked:border-blue-600 peer-checked:bg-blue-50/5 text-[11px] font-bold uppercase tracking-widest text-slate-400 peer-checked:text-blue-600 transition-all">Father</div>
+                <div className="p-3 text-center border rounded-xl cursor-pointer peer-checked:border-emerald-600 peer-checked:bg-emerald-50/5 text-[11px] font-bold uppercase tracking-widest text-gray-400 peer-checked:text-emerald-600 transition-all">Father</div>
               </label>
               <label>
                 <input type="radio" value="MOTHER" {...register("singleParentType")} className="hidden peer" />
-                <div className="p-3 text-center border rounded-xl cursor-pointer peer-checked:border-blue-600 peer-checked:bg-blue-50/5 text-[11px] font-bold uppercase tracking-widest text-slate-400 peer-checked:text-blue-600 transition-all">Mother</div>
+                <div className="p-3 text-center border rounded-xl cursor-pointer peer-checked:border-emerald-600 peer-checked:bg-emerald-50/5 text-[11px] font-bold uppercase tracking-widest text-gray-400 peer-checked:text-emerald-600 transition-all">Mother</div>
               </label>
             </div>
           </div>
@@ -250,7 +250,7 @@ export function ParentsSection({ register, errors, control, setValue }: SectionP
       <div className="space-y-8">
         {(isSingleParent === "NO" || singleParentType === "FATHER") && (
           <div className="space-y-4 animate-in fade-in duration-300">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Father's Details</p>
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Father's Details</p>
             <div className="grid grid-cols-3 gap-6">
               <SharedInput label="FIRST NAME" placeholder="MOHAN" {...register("fatherName.firstName")} />
               <SharedInput label="MIDDLE NAME" placeholder="LAL" {...register("fatherName.middleName")} />
@@ -260,8 +260,8 @@ export function ParentsSection({ register, errors, control, setValue }: SectionP
         )}
 
         {(isSingleParent === "NO" || singleParentType === "MOTHER") && (
-          <div className="space-y-4 animate-in fade-in duration-300 pt-6 border-t border-slate-100">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Mother's Details</p>
+          <div className="space-y-4 animate-in fade-in duration-300 pt-6 border-t border-gray-100">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Mother's Details</p>
             <div className="grid grid-cols-3 gap-6">
               <SharedInput label="FIRST NAME" placeholder="SUNITA" {...register("motherName.firstName")} />
               <SharedInput label="MIDDLE NAME" placeholder="DEVI" {...register("motherName.middleName")} />
@@ -272,16 +272,16 @@ export function ParentsSection({ register, errors, control, setValue }: SectionP
       </div>
 
       {/* Name Choice Row */}
-      <div className="space-y-4 p-6 bg-slate-50 rounded-2xl border border-slate-100">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Name to be printed on PAN card</p>
+      <div className="space-y-4 p-6 bg-gray-50 rounded-2xl border border-gray-100">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Name to be printed on PAN card</p>
         <div className="grid grid-cols-2 gap-4 max-w-md">
-          <label className="flex items-center gap-3 p-4 bg-white border rounded-xl cursor-pointer transition-all hover:border-blue-200">
-            <input type="radio" value="FATHER" {...register("parentToPrint")} className="w-4 h-4 text-blue-600" />
-            <span className="text-[13px] font-medium text-slate-700">Father's Name</span>
+          <label className="flex items-center gap-3 p-4 bg-white border rounded-xl cursor-pointer transition-all hover:border-emerald-200">
+            <input type="radio" value="FATHER" {...register("parentToPrint")} className="w-4 h-4 text-emerald-600" />
+            <span className="text-[13px] font-medium text-gray-700">Father's Name</span>
           </label>
-          <label className="flex items-center gap-3 p-4 bg-white border rounded-xl cursor-pointer transition-all hover:border-blue-200">
-            <input type="radio" value="MOTHER" {...register("parentToPrint")} className="w-4 h-4 text-blue-600" />
-            <span className="text-[13px] font-medium text-slate-700">Mother's Name</span>
+          <label className="flex items-center gap-3 p-4 bg-white border rounded-xl cursor-pointer transition-all hover:border-emerald-200">
+            <input type="radio" value="MOTHER" {...register("parentToPrint")} className="w-4 h-4 text-emerald-600" />
+            <span className="text-[13px] font-medium text-gray-700">Mother's Name</span>
           </label>
         </div>
       </div>
@@ -306,7 +306,7 @@ export function DeclarationSection({ register, errors, control, setValue }: Sect
       <div className="space-y-6">
         {/* Applicant Checklist */}
         <div className="space-y-4">
-          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">
             {isRepresentative ? "APPLICANT DOCUMENT CHECKLIST" : "Document Checklist"}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -315,8 +315,8 @@ export function DeclarationSection({ register, errors, control, setValue }: Sect
               { id: "proofOfAddress", label: "Address Proof" },
               { id: "proofOfDob", label: "DOB Proof" }
             ].map(doc => (
-              <label key={doc.id} className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-200 hover:bg-slate-50 transition-all text-[13px] font-medium text-slate-600">
-                <input type="checkbox" {...register(`documents.${doc.id}` as any)} className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20" />
+              <label key={doc.id} className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl cursor-pointer hover:border-emerald-200 hover:bg-gray-50 transition-all text-[13px] font-medium text-gray-600">
+                <input type="checkbox" {...register(`documents.${doc.id}` as any)} className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500/20" />
                 {doc.label}
               </label>
             ))}
@@ -325,15 +325,15 @@ export function DeclarationSection({ register, errors, control, setValue }: Sect
 
         {/* Representative Checklist (Conditional) */}
         {isRepresentative && (
-          <div className="space-y-4 pt-6 border-t border-slate-100 animate-in fade-in slide-in-from-top-2 duration-300">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">REPRESENTATIVE ASSESSEE DOCUMENT CHECKLIST</p>
+          <div className="space-y-4 pt-6 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">REPRESENTATIVE ASSESSEE DOCUMENT CHECKLIST</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 { id: "raProofOfIdentity", label: "Proof of Identity" },
                 { id: "raProofOfAddress", label: "Proof of Address" }
               ].map(doc => (
-                <label key={doc.id} className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-200 hover:bg-slate-50 transition-all text-[13px] font-medium text-slate-600">
-                  <input type="checkbox" {...register(`documents.${doc.id}` as any)} className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20" />
+                <label key={doc.id} className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl cursor-pointer hover:border-emerald-200 hover:bg-gray-50 transition-all text-[13px] font-medium text-gray-600">
+                  <input type="checkbox" {...register(`documents.${doc.id}` as any)} className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500/20" />
                   {doc.label}
                 </label>
               ))}
@@ -343,8 +343,8 @@ export function DeclarationSection({ register, errors, control, setValue }: Sect
       </div>
 
       {/* 2. AO Code Details Row */}
-      <div className="space-y-4 pt-6 border-t border-slate-100">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">AO Code Details</p>
+      <div className="space-y-4 pt-6 border-t border-gray-100">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">AO Code Details</p>
         <div className="grid grid-cols-4 gap-6">
           <SharedInput label="AREA CODE" maxLength={3} {...register("aoCode.areaCode")} required placeholder="PNE" />
           <SharedInput label="AO TYPE" maxLength={2} {...register("aoCode.aoType")} required placeholder="W" />
@@ -354,13 +354,13 @@ export function DeclarationSection({ register, errors, control, setValue }: Sect
       </div>
 
       {/* 3. Declaration & Place Row */}
-      <div className="space-y-4 pt-6 border-t border-slate-100">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Declaration & Verification</p>
+      <div className="space-y-4 pt-6 border-t border-gray-100">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Declaration & Verification</p>
         <div className="grid grid-cols-2 gap-6">
           <SharedInput label="VERIFICATION PLACE" placeholder="MUMBAI" {...register("verification.place")} required />
-          <div className="px-6 py-4 bg-slate-900 rounded-2xl relative overflow-hidden ring-1 ring-white/10 shadow-2xl flex flex-col justify-center">
-            <div className="absolute top-0 right-0 p-2 text-[9px] font-bold text-blue-400 uppercase tracking-tighter">Secure Matrix v2.4</div>
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Current Date</p>
+          <div className="px-6 py-4 bg-gray-900 rounded-2xl relative overflow-hidden ring-1 ring-white/10 shadow-2xl flex flex-col justify-center">
+            <div className="absolute top-0 right-0 p-2 text-[9px] font-bold text-emerald-400 uppercase tracking-tighter">Secure Matrix v2.4</div>
+            <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Current Date</p>
             <p className="text-white font-mono text-base tracking-tight" suppressHydrationWarning>
               {mounted ? new Date().toLocaleDateString() : "---"}
             </p>
@@ -377,8 +377,8 @@ export function RepresentativeAssesseeSection({ register, errors, control }: Sec
     <div className="space-y-10">
       <div className="space-y-4">
         <div className="flex flex-col gap-1">
-          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Representative Name</p>
-          <p className="text-[10px] text-slate-500 italic">Name of the person representing the applicant</p>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Representative Name</p>
+          <p className="text-[10px] text-gray-500 italic">Name of the person representing the applicant</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <SharedInput label="FIRST NAME" placeholder="VIKRAM" {...register("raDetails.firstName")} required />
@@ -387,8 +387,8 @@ export function RepresentativeAssesseeSection({ register, errors, control }: Sec
         </div>
       </div>
 
-      <div className="space-y-4 pt-4 border-t border-slate-100">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Identity Details (PAN or Aadhaar)</p>
+      <div className="space-y-4 pt-4 border-t border-gray-100">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Identity Details (PAN or Aadhaar)</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <SharedInput label="RA PAN NUMBER" placeholder="ABCDE1234F" {...register("raDetails.pan" as any)} />
           <SharedInput label="RA AADHAAR NUMBER" placeholder="123456789012" {...register("raDetails.aadhaar" as any)} />
@@ -396,8 +396,8 @@ export function RepresentativeAssesseeSection({ register, errors, control }: Sec
         {errors.raDetails?.pan && <p className="text-[10px] text-red-500 font-medium italic">{errors.raDetails.pan.message}</p>}
       </div>
 
-      <div className="space-y-4 pt-4 border-t border-slate-100">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">RA Contact Details</p>
+      <div className="space-y-4 pt-4 border-t border-gray-100">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">RA Contact Details</p>
         <div className="flex flex-col lg:flex-row gap-4 lg:items-end">
           <div className="w-full lg:w-[80px]">
             <SharedInput label="CODE" defaultValue="91" {...register("raDetails.countryCode" as any)} />
@@ -411,8 +411,8 @@ export function RepresentativeAssesseeSection({ register, errors, control }: Sec
         </div>
       </div>
 
-      <div className="space-y-4 pt-4 border-t border-slate-100">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">RA Landline Details (Optional)</p>
+      <div className="space-y-4 pt-4 border-t border-gray-100">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">RA Landline Details (Optional)</p>
         <div className="flex gap-4">
           <div className="w-[100px]">
             <SharedInput label="STD CODE" {...register("raDetails.stdCode" as any)} />

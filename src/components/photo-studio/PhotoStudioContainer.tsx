@@ -25,15 +25,15 @@ export function PhotoStudioContainer() {
     <div className="w-full max-w-6xl mx-auto p-4 md:p-6 lg:p-8 flex flex-col gap-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Photo Studio</h1>
-        <p className="text-slate-500 mt-2">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Photo Studio</h1>
+        <p className="text-gray-500 mt-2">
           100% Free Client-Side Image Tools. No wallet deduction, completely secure.
         </p>
       </div>
 
       {/* Tabs Navigation */}
       <div className="w-full overflow-x-auto pb-2 scrollbar-none">
-        <div className="flex bg-slate-200/50 p-1 rounded-2xl w-max">
+        <div className="flex bg-gray-200/50 p-1 rounded-2xl w-max">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -43,8 +43,8 @@ export function PhotoStudioContainer() {
                 className={cn(
                   "flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300",
                   isActive
-                    ? "bg-white text-blue-700 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                    ? "bg-white text-emerald-700 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
                 )}
               >
                 {tab.icon}
@@ -56,7 +56,7 @@ export function PhotoStudioContainer() {
       </div>
 
       {/* Tab Content Area */}
-      <div className="w-full bg-white border border-slate-200 shadow-sm rounded-3xl p-6 lg:p-8 min-h-[500px]">
+      <div className="w-full bg-white border border-gray-200 shadow-sm rounded-3xl p-6 lg:p-8 min-h-[500px]">
         {activeTab === "remove-bg" && <RemoveBgTab />}
         {activeTab === "crop" && <CropTab />}
         {activeTab === "compress" && <CompressTab />}

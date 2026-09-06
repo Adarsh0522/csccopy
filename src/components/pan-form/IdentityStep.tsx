@@ -78,13 +78,13 @@ export function IdentityStep({ register, errors, control }: StepProps) {
 
 
       {isMinor && (
-        <div className="mt-8 p-4 bg-blue-50/50 border border-blue-100 rounded-xl flex gap-3 items-start cursor-default hover:bg-blue-50 smooth-transition">
-          <div className="bg-blue-500 text-white p-1 rounded-md">
+        <div className="mt-8 p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl flex gap-3 items-start cursor-default hover:bg-emerald-50 smooth-transition">
+          <div className="bg-emerald-500 text-white p-1 rounded-md">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-[11px] text-blue-800 leading-relaxed">
+          <p className="text-[11px] text-emerald-800 leading-relaxed">
             <strong>Minor Applicant:</strong> Representative Assessee (RA) details will be required in the final steps for legal verification.
           </p>
         </div>

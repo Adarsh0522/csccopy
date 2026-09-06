@@ -17,7 +17,7 @@ export function StepIndicator({ currentStep, totalSteps }: StepIndicatorProps) {
     <div className="w-full max-w-[600px] mx-auto px-4">
       <div className="flex items-center justify-between relative">
         {/* Progress Background Line */}
-        <div className="absolute top-[16px] left-0 right-0 h-0.5 bg-slate-200 -z-10" />
+        <div className="absolute top-[16px] left-0 right-0 h-0.5 bg-gray-200 -z-10" />
         
         {steps.map((step, idx) => (
           <div key={step.id} className="flex flex-col items-center gap-2 bg-[#F9FAFB] px-2">
@@ -25,8 +25,8 @@ export function StepIndicator({ currentStep, totalSteps }: StepIndicatorProps) {
               className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold transition-colors",
                 currentStep >= step.id
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-200 text-slate-500"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-gray-200 text-gray-500"
               )}
             >
               {currentStep > step.id ? (
@@ -40,7 +40,7 @@ export function StepIndicator({ currentStep, totalSteps }: StepIndicatorProps) {
             <span
               className={cn(
                 "text-[10px] font-bold uppercase tracking-wider",
-                currentStep >= step.id ? "text-blue-600" : "text-slate-400"
+                currentStep >= step.id ? "text-emerald-600" : "text-gray-400"
               )}
             >
               {step.label}

@@ -35,7 +35,7 @@ export function CorrectionContactIncomeSection({ register, errors, control, setV
     <div className="space-y-10">
       {/* 1. Identification (Passport & TIN) */}
       <div className="space-y-4">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Foreign Identification (If Any)</p>
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Foreign Identification (If Any)</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SharedInput
             label="PASSPORT NUMBER"
@@ -53,8 +53,8 @@ export function CorrectionContactIncomeSection({ register, errors, control, setV
       </div>
 
       {/* 2. Contact Row */}
-      <div className="space-y-4 pt-6 border-t border-slate-200">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Contact Information</p>
+      <div className="space-y-4 pt-6 border-t border-gray-200">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Contact Information</p>
         <div className="space-y-6">
           {/* Row 1: Mobile */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -72,7 +72,7 @@ export function CorrectionContactIncomeSection({ register, errors, control, setV
           </div>
 
           {/* Row 3: Landline */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end pt-4 border-t border-slate-100">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end pt-4 border-t border-gray-100">
             <div className="md:col-span-1">
               <SharedInput label="COUNTRY/ISD" defaultValue="91" {...register("contact.isdCode" as any)} />
             </div>
@@ -105,15 +105,15 @@ export function CorrectionParentsSection({ register, errors, control, setValue }
       {/* Names Grid */}
       <div className="space-y-8">
         <div className="space-y-4">
-          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Father's Details</p>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Father's Details</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <SharedInput label="FIRST NAME" placeholder="MOHAN" {...register("fatherName.firstName")} error={errors.fatherName?.firstName} />
             <SharedInput label="MIDDLE NAME" placeholder="LAL" {...register("fatherName.middleName")} error={errors.fatherName?.middleName} />
             <SharedInput label="LAST NAME" placeholder="SHARMA" {...register("fatherName.lastName")} error={errors.fatherName?.lastName} />
           </div>
         </div>
-        <div className="space-y-4 pt-8 border-t border-slate-100">
-          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Mother's Details</p>
+        <div className="space-y-4 pt-8 border-t border-gray-100">
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Mother's Details</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <SharedInput label="FIRST NAME" placeholder="SUNITA" {...register("motherName.firstName")} error={errors.motherName?.firstName} />
             <SharedInput label="MIDDLE NAME" placeholder="DEVI" {...register("motherName.middleName")} error={errors.motherName?.middleName} />
@@ -122,16 +122,16 @@ export function CorrectionParentsSection({ register, errors, control, setValue }
         </div>
       </div>
 
-      <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em] mb-4">Name to be printed on PAN card</p>
+      <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em] mb-4">Name to be printed on PAN card</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md">
           <label className="flex items-center gap-3 p-4 bg-white border rounded-xl cursor-pointer">
-            <input type="radio" value="FATHER" {...register("parentToPrint")} className="w-4 h-4 text-blue-600" />
-            <span className="text-[13px] font-medium text-slate-700">Father's Name</span>
+            <input type="radio" value="FATHER" {...register("parentToPrint")} className="w-4 h-4 text-emerald-600" />
+            <span className="text-[13px] font-medium text-gray-700">Father's Name</span>
           </label>
           <label className="flex items-center gap-3 p-4 bg-white border rounded-xl cursor-pointer">
-            <input type="radio" value="MOTHER" {...register("parentToPrint")} className="w-4 h-4 text-blue-600" />
-            <span className="text-[13px] font-medium text-slate-700">Mother's Name</span>
+            <input type="radio" value="MOTHER" {...register("parentToPrint")} className="w-4 h-4 text-emerald-600" />
+            <span className="text-[13px] font-medium text-gray-700">Mother's Name</span>
           </label>
         </div>
       </div>
@@ -147,8 +147,8 @@ export function CorrectionDeclarationSection({ register, errors, control, setVal
   return (
     <div className="space-y-12">
       <div className="space-y-6">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Documents submitted as Proof</p>
-        <p className="text-[13px] text-slate-500 leading-relaxed italic">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Documents submitted as Proof</p>
+        <p className="text-[13px] text-gray-500 leading-relaxed italic">
           Documents submitted as Proof of Identity, Proof of Address, Proof of Date of Birth of the Applicant & Proof of Change in support of proposed changes / corrections requested by the Applicant
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -159,21 +159,21 @@ export function CorrectionDeclarationSection({ register, errors, control, setVal
             { id: "documents.otherChangesProof", label: "(iv) Documentary proof in support of other changes" },
             { id: "documents.copyOfPan", label: "(v) Copy of PAN" }
           ].map(doc => (
-            <label key={doc.id} className="flex items-center gap-3 p-3 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-              <input type="checkbox" {...register(doc.id as any)} className="w-4 h-4 rounded text-blue-600" />
-              <span className="text-[12px] font-medium text-slate-700">{doc.label}</span>
+            <label key={doc.id} className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+              <input type="checkbox" {...register(doc.id as any)} className="w-4 h-4 rounded text-emerald-600" />
+              <span className="text-[12px] font-medium text-gray-700">{doc.label}</span>
             </label>
           ))}
         </div>
       </div>
 
-      <div className="space-y-6 pt-6 border-t border-slate-100">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Declaration & Verification</p>
+      <div className="space-y-6 pt-6 border-t border-gray-100">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Declaration & Verification</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
           <SharedInput label="VERIFICATION PLACE" placeholder="MUMBAI" {...register("verification.place")} required />
-          <div className="px-6 py-3 bg-slate-900 rounded-2xl relative overflow-hidden ring-1 ring-white/10 shadow-lg h-[58px] flex flex-col justify-center">
-            <div className="absolute top-0 right-0 p-2 text-[8px] font-bold text-blue-400 uppercase tracking-tighter">Secure Matrix</div>
-            <p className="text-[9px] text-slate-400 uppercase tracking-widest mb-0.5">Current Date</p>
+          <div className="px-6 py-3 bg-gray-900 rounded-2xl relative overflow-hidden ring-1 ring-white/10 shadow-lg h-[58px] flex flex-col justify-center">
+            <div className="absolute top-0 right-0 p-2 text-[8px] font-bold text-emerald-400 uppercase tracking-tighter">Secure Matrix</div>
+            <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-0.5">Current Date</p>
             <p className="text-white font-mono text-sm tracking-tight" suppressHydrationWarning>
               {mounted ? new Date().toLocaleDateString() : "---"}
             </p>

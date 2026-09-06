@@ -15,7 +15,7 @@ export function CorrectionAddressInput({ type, register, errors, title }: Addres
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
-        <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">
+        <h3 className="text-sm font-black uppercase tracking-widest text-gray-400">
           {title}
         </h3>
       </div>

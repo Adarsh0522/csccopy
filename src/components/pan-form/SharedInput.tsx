@@ -17,16 +17,16 @@ export function SharedInput({
 }: SharedInputProps) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <label className="text-[12px] font-medium text-slate-600 block uppercase tracking-wide">
+      <label className="text-[12px] font-medium text-gray-600 block uppercase tracking-wide">
         {label} {props.required && <span className="text-red-500">*</span>}
       </label>
       <input
         className={cn(
-          "w-full h-11 px-4 bg-white border rounded-lg transition-all outline-none text-[14px] uppercase placeholder:text-slate-400 placeholder:uppercase",
+          "w-full h-11 px-4 bg-white border rounded-lg transition-all outline-none text-[14px] uppercase placeholder:text-gray-400 placeholder:uppercase",
           error
             ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-            : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-          props.disabled && "bg-slate-50 cursor-not-allowed text-slate-400 border-slate-200"
+            : "border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20",
+          props.disabled && "bg-gray-50 cursor-not-allowed text-gray-400 border-gray-200"
         )}
         placeholder={placeholder?.toUpperCase()}
         {...props}
@@ -55,7 +55,7 @@ export function SharedSelect({
 }: SharedSelectProps) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <label className="text-[12px] font-medium text-slate-600 block uppercase tracking-wide">
+      <label className="text-[12px] font-medium text-gray-600 block uppercase tracking-wide">
         {label} {props.required && <span className="text-red-500">*</span>}
       </label>
       <div className="relative group">
@@ -64,8 +64,8 @@ export function SharedSelect({
             "w-full h-11 px-4 pr-10 bg-white border rounded-lg transition-all outline-none appearance-none text-[14px] uppercase",
             error
               ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-              : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-            props.disabled && "bg-slate-50 cursor-not-allowed text-slate-400 border-slate-200"
+              : "border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20",
+            props.disabled && "bg-gray-50 cursor-not-allowed text-gray-400 border-gray-200"
           )}
           {...props}
         >
@@ -76,7 +76,7 @@ export function SharedSelect({
             </option>
           ))}
         </select>
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
