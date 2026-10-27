@@ -4,7 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 import { getAppUrl } from '@/lib/get-app-url'
 
 export async function POST(req: Request) {
-  const baseUrl = getAppUrl(req)
+  let baseUrl = getAppUrl(req)
+  if (baseUrl.includes('payu')) {
+    baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://csccopy.online'
+  }
 
   try {
     const formData = await req.formData()
@@ -116,6 +119,9 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const baseUrl = getAppUrl(req)
+  let baseUrl = getAppUrl(req)
+  if (baseUrl.includes('payu')) {
+    baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://csccopy.online'
+  }
   return NextResponse.redirect(new URL('/dashboard/wallet', baseUrl), 303)
 }

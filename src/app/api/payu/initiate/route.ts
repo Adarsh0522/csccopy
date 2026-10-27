@@ -48,7 +48,10 @@ export async function POST(req: Request) {
     const productinfo = 'WalletTopup'
 
     // Determine host origin for callbacks
-    const origin = getAppUrl(req)
+    let origin = getAppUrl(req)
+    if (origin.includes('payu')) {
+      origin = process.env.NEXT_PUBLIC_APP_URL || 'https://csccopy.online'
+    }
 
     const surl = `${origin}/api/payu/callback`
     const furl = `${origin}/api/payu/callback`
