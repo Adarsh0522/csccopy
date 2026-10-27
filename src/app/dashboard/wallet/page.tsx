@@ -1,39 +1,34 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { useState, useEffect, Suspense } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
-import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Plus, History } from 'lucide-react'
+import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Plus, History, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
-export default function WalletPage() {
+function WalletContent() {
   const [balance, setBalance] = useState<number>(0)
   const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
+  const searchParams = useSearchParams()
+
+  const paymentSuccess = searchParams.get('payment') === 'success'
+  const paymentAmount = searchParams.get('amount')
+  const txnid = searchParams.get('txnid')
 
   useEffect(() => {
     async function fetchData() {
       const isTempUser = typeof window !== 'undefined' && localStorage.getItem('temp_user') === 'true'
       
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user && !isTempUser) {
-        setLoading(false)
-        return
-      }
-
-      if (isTempUser) {
-        setBalance(150.00)
-        setTransactions([
-          { id: '1', type: 'credit', amount: 500, description: 'Razorpay Wallet Top-up', created_at: new Date().toISOString(), status: 'success' },
-          { id: '2', type: 'debit', amount: 10, description: 'PVC Print - Aadhaar', created_at: new Date(Date.now() - 86400000).toISOString(), status: 'success' },
-        ])
-        setLoading(false)
-        return
-      }
 
       if (user) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('temp_user')
+        }
         // Fetch balance
         const { data: walletData } = await supabase
           .from('wallet')
@@ -56,12 +51,32 @@ export default function WalletPage() {
         if (txData) {
           setTransactions(txData)
         }
+        setLoading(false)
+        return
+      }
+
+      if (isTempUser) {
+        setBalance(paymentSuccess && paymentAmount ? 150 + Number(paymentAmount) : 150.00)
+        setTransactions([
+          ...(paymentSuccess && paymentAmount ? [{
+            id: 'new_tx',
+            type: 'credit',
+            amount: Number(paymentAmount),
+            description: 'PayU Wallet Top-up',
+            created_at: new Date().toISOString(),
+            status: 'success'
+          }] : []),
+          { id: '1', type: 'credit', amount: 500, description: 'PayU Wallet Top-up', created_at: new Date().toISOString(), status: 'success' },
+          { id: '2', type: 'debit', amount: 10, description: 'PVC Print - Aadhaar', created_at: new Date(Date.now() - 86400000).toISOString(), status: 'success' },
+        ])
+        setLoading(false)
+        return
       }
       setLoading(false)
     }
 
     fetchData()
-  }, [supabase])
+  }, [supabase, paymentSuccess, paymentAmount])
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr)
@@ -75,13 +90,34 @@ export default function WalletPage() {
     <div className="min-h-[calc(100vh-73px)] bg-gray-100 p-6 lg:p-8">
       <div className="max-w-5xl mx-auto space-y-8">
         
+        {paymentSuccess && (
+          <div className="bg-emerald-600 text-white p-5 rounded-2xl shadow-lg flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-lg">Payment Successful via PayU!</h3>
+                <p className="text-emerald-100 text-sm font-medium">
+                  ₹{paymentAmount || ''} has been credited to your wallet. {txnid ? `(Txn ID: ${txnid})` : ''}
+                </p>
+              </div>
+            </div>
+            <Link href="/dashboard/wallet">
+              <Button variant="outline" className="bg-white/10 hover:bg-white text-white hover:text-emerald-900 border-white/30 font-bold">
+                Dismiss
+              </Button>
+            </Link>
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">My Wallet</h1>
             <p className="text-gray-500 font-medium">Manage your funds and view transaction history.</p>
           </div>
           <Link href="/dashboard/wallet/add-balance">
-            <Button className="h-12 px-6 bg-emerald-600 hover:bg-emerald-700 shadow-sm text-base font-bold flex items-center gap-2">
+            <Button className="h-12 px-6 bg-emerald-600 hover:bg-emerald-700 shadow-sm text-base font-bold flex items-center gap-2 text-white">
               <Plus className="w-5 h-5" />
               Add Balance
             </Button>
@@ -154,5 +190,13 @@ export default function WalletPage() {
         
       </div>
     </div>
+  )
+}
+
+export default function WalletPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading wallet...</div>}>
+      <WalletContent />
+    </Suspense>
   )
 }

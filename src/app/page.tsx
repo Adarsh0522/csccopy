@@ -52,11 +52,7 @@ export default function LoginPage() {
       setStep('otp')
     } catch (err: any) {
       console.error(err)
-      if (phone === '9876543210') {
-        setStep('otp')
-      } else {
-        setError(err.message || 'Failed to send OTP. Please try again.')
-      }
+      setError(err.message || 'Failed to send OTP. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -69,15 +65,6 @@ export default function LoginPage() {
 
     try {
       const formattedPhone = getFormattedPhone()
-
-      if (phone === '9876543210' && otp === '123456') {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('temp_user', 'true')
-        }
-        router.push('/dashboard')
-        router.refresh()
-        return
-      }
 
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         phone: formattedPhone,
@@ -171,7 +158,7 @@ export default function LoginPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-white text-[16px]">Instant Wallet System</h3>
-                  <p className="text-emerald-100/60 text-[15px] mt-0.5 leading-snug">Add funds securely via Razorpay and enjoy seamless 1-click deductions.</p>
+                  <p className="text-emerald-100/60 text-[15px] mt-0.5 leading-snug">Add funds securely via PayU and enjoy seamless 1-click deductions.</p>
                 </div>
               </div>
             </div>

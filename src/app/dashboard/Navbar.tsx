@@ -9,6 +9,7 @@ import { Mail, Bell, Wallet, HelpCircle } from 'lucide-react'
 export function Navbar() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
+  const [walletBalance, setWalletBalance] = useState<number>(0)
   const router = useRouter()
   const supabase = createClient()
 
@@ -17,19 +18,34 @@ export function Navbar() {
       const isTempUser = typeof window !== 'undefined' && localStorage.getItem('temp_user') === 'true'
       
       const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('temp_user')
+        }
+        setUserEmail(user.email ?? user.phone ?? 'User')
+        setUserName(user.user_metadata?.full_name || 'CSC Operator')
+
+        const { data: walletData } = await supabase
+          .from('wallet')
+          .select('balance')
+          .eq('user_id', user.id)
+          .single()
+
+        if (walletData) {
+          setWalletBalance(walletData.balance)
+        }
+        return
+      }
       
       if (isTempUser) {
         setUserEmail('admin@csccopy.com')
         setUserName('CSC Operator')
+        setWalletBalance(150.00)
         return
       }
 
-      if (user) {
-        setUserEmail(user.email ?? user.phone ?? 'User')
-        setUserName(user.user_metadata?.full_name || 'CSC Operator')
-      } else {
-        router.push('/')
-      }
+      router.push('/')
     }
     
     loadData()
@@ -49,7 +65,7 @@ export function Navbar() {
           
           <Link href="/dashboard/wallet" className="hidden sm:flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100 shadow-sm hover:bg-emerald-100 transition-colors group">
             <Wallet className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-            <span className="font-bold text-emerald-700 text-sm">₹ 1,250.00</span>
+            <span className="font-bold text-emerald-700 text-sm">₹ {walletBalance.toFixed(2)}</span>
           </Link>
 
           <a 

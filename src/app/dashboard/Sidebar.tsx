@@ -1,19 +1,40 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Printer, Camera, FileText, Wallet, User, HelpCircle, LogOut } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { LayoutDashboard, Printer, Camera, FileText, Wallet, User, HelpCircle, LogOut, Activity, IdCard, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { useState } from 'react'
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const supabase = createClient()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true)
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('temp_user')
+      }
+      await supabase.auth.signOut()
+      router.push('/')
+      router.refresh()
+    } catch (error) {
+      console.error('Logout error:', error)
+      setIsLoggingOut(false)
+    }
+  }
 
   const menuLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
     { name: 'PVC Print', href: '/dashboard/pvc-print', icon: <Printer className="w-5 h-5" /> },
-    { name: 'PAN Services', href: '/dashboard/pan-services', icon: <FileText className="w-5 h-5" /> },
+    { name: 'PAN Services', href: '/dashboard/pan-services', icon: <IdCard className="w-5 h-5" /> },
   ]
 
   const generalLinks = [
+    { name: 'Activity', href: '/dashboard/activity', icon: <Activity className="w-5 h-5" /> },
     { name: 'Wallet', href: '/dashboard/wallet', icon: <Wallet className="w-5 h-5" /> },
     { name: 'Profile', href: '/dashboard/profile', icon: <User className="w-5 h-5" /> },
     { name: 'Help', href: '/dashboard/help', icon: <HelpCircle className="w-5 h-5" /> },
@@ -81,12 +102,21 @@ export function Sidebar() {
               )
             })}
 
-            {/* Logout Button (Fake for now, handled by Navbar in real app, but placed here for aesthetics) */}
-            <button className="w-full flex items-center space-x-3 px-4 py-3 font-semibold rounded-xl transition-all duration-300 text-gray-500 hover:bg-red-50 hover:text-red-600 group">
+            {/* Logout Button */}
+            <button 
+              type="button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="w-full flex items-center space-x-3 px-4 py-3 font-semibold rounded-xl transition-all duration-300 text-gray-500 hover:bg-red-50 hover:text-red-600 group cursor-pointer disabled:opacity-60"
+            >
               <div className="text-gray-400 group-hover:text-red-500">
-                <LogOut className="w-5 h-5" />
+                {isLoggingOut ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-red-500" />
+                ) : (
+                  <LogOut className="w-5 h-5" />
+                )}
               </div>
-              <span className="text-[15px]">Logout</span>
+              <span className="text-[15px]">{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
             </button>
           </nav>
         </div>

@@ -162,8 +162,8 @@
 
 /* Strict CR80 PVC Card Dimensions */
 .pvc-card {
-  width: 54mm;
-  height: 85.6mm;
+  width: 85.6mm;
+  height: 54mm;
   border-radius: 3.18mm;
   overflow: hidden;
   position: relative;
