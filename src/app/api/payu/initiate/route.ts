@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
+import { getAppUrl } from '@/lib/get-app-url'
 
 export async function POST(req: Request) {
   try {
@@ -47,8 +48,7 @@ export async function POST(req: Request) {
     const productinfo = 'WalletTopup'
 
     // Determine host origin for callbacks
-    const headerOrigin = req.headers.get('origin') || req.headers.get('host')
-    let origin = process.env.NEXT_PUBLIC_APP_URL || (headerOrigin ? (headerOrigin.startsWith('http') ? headerOrigin : `http://${headerOrigin}`) : 'http://localhost:3000')
+    const origin = getAppUrl(req)
 
     const surl = `${origin}/api/payu/callback`
     const furl = `${origin}/api/payu/callback`

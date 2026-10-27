@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
+import { getAppUrl } from '@/lib/get-app-url'
 
 export async function POST(req: Request) {
+  const baseUrl = getAppUrl(req)
+
   try {
     const formData = await req.formData()
 
@@ -24,7 +27,7 @@ export async function POST(req: Request) {
     if (!salt) {
       console.error('PAYU_MERCHANT_SALT is missing in environment variables')
       return NextResponse.redirect(
-        new URL('/dashboard/wallet/add-balance?payment=failed&reason=Gateway_configuration_missing', req.url),
+        new URL('/dashboard/wallet/add-balance?payment=failed&reason=Gateway_configuration_missing', baseUrl),
         303
       )
     }
@@ -66,7 +69,7 @@ export async function POST(req: Request) {
         hashSequence
       })
       return NextResponse.redirect(
-        new URL('/dashboard/wallet/add-balance?payment=failed&reason=Invalid_payment_hash_verification', req.url),
+        new URL('/dashboard/wallet/add-balance?payment=failed&reason=Invalid_payment_hash_verification', baseUrl),
         303
       )
     }
@@ -85,7 +88,7 @@ export async function POST(req: Request) {
         if (rpcError) {
           console.error('Error crediting wallet balance:', rpcError)
           return NextResponse.redirect(
-            new URL(`/dashboard/wallet?payment=success&txnid=${txnid}&amount=${amount}&notice=manual_credit_check`, req.url),
+            new URL(`/dashboard/wallet?payment=success&txnid=${txnid}&amount=${amount}&notice=manual_credit_check`, baseUrl),
             303
           )
         }
@@ -93,25 +96,26 @@ export async function POST(req: Request) {
 
       // Success redirect
       return NextResponse.redirect(
-        new URL(`/dashboard/wallet?payment=success&txnid=${txnid}&amount=${amount}`, req.url),
+        new URL(`/dashboard/wallet?payment=success&txnid=${txnid}&amount=${amount}`, baseUrl),
         303
       )
     } else {
       // Payment failed / cancelled
       return NextResponse.redirect(
-        new URL(`/dashboard/wallet/add-balance?payment=failed&reason=${encodeURIComponent(errorMessage)}`, req.url),
+        new URL(`/dashboard/wallet/add-balance?payment=failed&reason=${encodeURIComponent(errorMessage)}`, baseUrl),
         303
       )
     }
   } catch (error: any) {
     console.error('PayU Callback Exception:', error)
     return NextResponse.redirect(
-      new URL('/dashboard/wallet/add-balance?payment=failed&reason=Internal_server_error', req.url),
+      new URL('/dashboard/wallet/add-balance?payment=failed&reason=Internal_server_error', baseUrl),
       303
     )
   }
 }
 
 export async function GET(req: Request) {
-  return NextResponse.redirect(new URL('/dashboard/wallet', req.url), 303)
+  const baseUrl = getAppUrl(req)
+  return NextResponse.redirect(new URL('/dashboard/wallet', baseUrl), 303)
 }
