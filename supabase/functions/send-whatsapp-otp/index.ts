@@ -23,9 +23,18 @@ serve(async (req) => {
       throw new Error("Missing Meta Credentials (META_ACCESS_TOKEN / META_PHONE_NUMBER_ID) in Edge Function Secrets")
     }
 
+    // Support both 1-param templates (like csccopy_verification_code) and 2-param templates (like auth_otp_template)
+    const bodyParameters = TEMPLATE_NAME === 'auth_otp_template'
+      ? [
+          { type: 'text', text: 'CSCCopy' },
+          { type: 'text', text: otp }
+        ]
+      : [
+          { type: 'text', text: otp }
+        ]
+
     // 3. Call Meta's Official WhatsApp API
-    // Note: auth_otp_template requires 2 body params (App Name & OTP) and 1 URL button param (OTP)
-    const response = await fetch(`https://graph.facebook.com/v17.0/${PHONE_ID}/messages`, {
+    const response = await fetch(`https://graph.facebook.com/v19.0/${PHONE_ID}/messages`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${META_TOKEN}`,
@@ -41,10 +50,7 @@ serve(async (req) => {
           components: [
             {
               type: 'body',
-              parameters: [
-                { type: 'text', text: 'CSCCopy' },
-                { type: 'text', text: otp }
-              ]
+              parameters: bodyParameters
             },
             {
               type: 'button',

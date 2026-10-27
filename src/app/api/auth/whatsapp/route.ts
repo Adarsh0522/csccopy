@@ -43,6 +43,15 @@ export async function POST(req: Request) {
     // Format phone number for WhatsApp (must not contain the '+' symbol, just the country code + number)
     const formattedPhone = phone.replace('+', '')
 
+    const bodyParameters = templateName === 'auth_otp_template'
+      ? [
+          { type: 'text', text: 'CSCCopy' },
+          { type: 'text', text: otp }
+        ]
+      : [
+          { type: 'text', text: otp }
+        ]
+
     // Meta API Request
     const metaRes = await fetch(`https://graph.facebook.com/v19.0/${phoneNumberId}/messages`, {
       method: 'POST',
@@ -60,12 +69,7 @@ export async function POST(req: Request) {
           components: [
             {
               type: 'body',
-              parameters: [
-                {
-                  type: 'text',
-                  text: otp
-                }
-              ]
+              parameters: bodyParameters
             },
             {
               type: 'button',
