@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
+import { subscribeToWallet, emitWalletUpdate } from '@/lib/realtime'
 import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Plus, History, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -38,6 +39,9 @@ function WalletContent() {
         
         if (walletData) {
           setBalance(walletData.balance)
+          if (paymentSuccess) {
+            emitWalletUpdate(walletData.balance)
+          }
         }
 
         // Fetch transactions
@@ -76,6 +80,24 @@ function WalletContent() {
     }
 
     fetchData()
+
+    let unsub: (() => void) | null = null
+    const setupSub = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        unsub = subscribeToWallet(user.id, (newBal) => {
+          if (newBal != null) {
+            setBalance(Number(newBal))
+          }
+          fetchData()
+        })
+      }
+    }
+    setupSub()
+
+    return () => {
+      if (unsub) unsub()
+    }
   }, [supabase, paymentSuccess, paymentAmount])
 
   const formatDate = (dateStr: string) => {
@@ -186,6 +208,18 @@ function WalletContent() {
               )}
             </CardContent>
           </Card>
+
+          {/* Help & Refund Policy Helper */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-slate-700">Payment issue or recharge delay?</span>
+              <span>WhatsApp: <strong className="text-emerald-700">+91 8169431433</strong></span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link href="/refund-policy" className="text-emerald-600 hover:underline font-semibold">Refund Policy</Link>
+              <Link href="/dashboard/help" className="text-slate-700 hover:underline font-semibold">Help & Support</Link>
+            </div>
+          </div>
         </div>
         
       </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { subscribeToWallet } from '@/lib/realtime'
 import { Mail, Bell, Wallet, HelpCircle } from 'lucide-react'
 
 export function Navbar() {
@@ -14,6 +15,8 @@ export function Navbar() {
   const supabase = createClient()
 
   useEffect(() => {
+    let unsubscribeWallet: (() => void) | null = null
+
     async function loadData() {
       const isTempUser = typeof window !== 'undefined' && localStorage.getItem('temp_user') === 'true'
       
@@ -24,17 +27,36 @@ export function Navbar() {
           localStorage.removeItem('temp_user')
         }
         setUserEmail(user.email ?? user.phone ?? 'User')
-        setUserName(user.user_metadata?.full_name || 'CSC Operator')
+        setUserName(user.user_metadata?.business_name || user.user_metadata?.full_name || 'CSC Operator')
 
-        const { data: walletData } = await supabase
-          .from('wallet')
-          .select('balance')
-          .eq('user_id', user.id)
-          .single()
+        const fetchBalance = async () => {
+          try {
+            const { data: walletData } = await supabase
+              .from('wallet')
+              .select('balance')
+              .eq('user_id', user.id)
+              .maybeSingle()
 
-        if (walletData) {
-          setWalletBalance(walletData.balance)
+            if (walletData && walletData.balance != null) {
+              setWalletBalance(Number(walletData.balance))
+            }
+          } catch (err) {
+            console.error('Failed to fetch wallet balance:', err)
+          }
         }
+
+        // 1. Initial fetch
+        await fetchBalance()
+
+        // 2. Real-time subscription (Postgres changes, BroadcastChannel, CustomEvents, Heartbeat)
+        unsubscribeWallet = subscribeToWallet(user.id, (newBalance) => {
+          if (newBalance !== undefined && newBalance !== null) {
+            setWalletBalance(Number(newBalance))
+          } else {
+            fetchBalance()
+          }
+        })
+
         return
       }
       
@@ -49,6 +71,12 @@ export function Navbar() {
     }
     
     loadData()
+
+    return () => {
+      if (unsubscribeWallet) {
+        unsubscribeWallet()
+      }
+    }
   }, [supabase, router])
 
   return (
@@ -63,9 +91,14 @@ export function Navbar() {
         {/* Wallet Balance & Icon Buttons */}
         <div className="flex items-center space-x-4 pr-4 border-r border-gray-200">
           
-          <Link href="/dashboard/wallet" className="hidden sm:flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100 shadow-sm hover:bg-emerald-100 transition-colors group">
+          <Link 
+            href="/dashboard/wallet" 
+            className="hidden sm:flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100 shadow-sm hover:bg-emerald-100 transition-all duration-300 group"
+          >
             <Wallet className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-            <span className="font-bold text-emerald-700 text-sm">₹ {walletBalance.toFixed(2)}</span>
+            <span className="font-bold text-emerald-700 text-sm tracking-tight transition-all">
+              ₹ {walletBalance.toFixed(2)}
+            </span>
           </Link>
 
           <a 
@@ -87,7 +120,7 @@ export function Navbar() {
         </div>
         
         {/* Profile */}
-        <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+        <Link href="/dashboard/profile" className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 p-0.5 shadow-sm">
             <div className="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden border-2 border-white">
                {/* Default Avatar Illustration */}
@@ -98,7 +131,7 @@ export function Navbar() {
             <div className="text-sm font-bold text-gray-900 leading-tight">{userName}</div>
             <div className="text-[11px] font-medium text-gray-500">{userEmail}</div>
           </div>
-        </div>
+        </Link>
         
       </div>
     </nav>

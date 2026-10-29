@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Eye, FileText, CheckCircle2, XCircle, Clock, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { Eye, FileText, CheckCircle2, XCircle, Clock, Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createClient } from '@/lib/supabase/client'
+import { subscribeToApplications, emitApplicationCreated } from '@/lib/realtime'
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<any[]>([])
@@ -19,37 +20,39 @@ export default function ApplicationsPage() {
   const [statusFilter, setStatusFilter] = useState('All')
   const [serviceFilter, setServiceFilter] = useState('All')
   const [currentPage, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 20
+  const ITEMS_PER_PAGE = 10
 
   const supabase = createClient()
 
   useEffect(() => {
-    fetchApplications()
+    fetchApplications(true)
 
-    const channel = supabase
-      .channel('applications_list')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'service_applications' }, () => {
-        fetchApplications()
-      })
-      .subscribe()
+    const unsubscribe = subscribeToApplications(() => {
+      fetchApplications(false)
+    })
 
     return () => {
-      supabase.removeChannel(channel)
+      unsubscribe()
     }
   }, [])
 
-  const fetchApplications = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('service_applications')
-      .select(`
-        *,
-        services ( title, form_schema )
-      `)
-      .order('created_at', { ascending: false })
+  const fetchApplications = async (isInitial: boolean = false) => {
+    if (isInitial) setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('service_applications')
+        .select(`
+          *,
+          services ( title, form_schema )
+        `)
+        .order('created_at', { ascending: false })
 
-    if (data) setApplications(data)
-    setLoading(false)
+      if (data) setApplications(data)
+    } catch (err) {
+      console.error('Failed to fetch applications:', err)
+    } finally {
+      if (isInitial) setLoading(false)
+    }
   }
 
   const handleView = (app: any) => {
@@ -68,6 +71,7 @@ export default function ApplicationsPage() {
     if (!error) {
       setSelectedApp({ ...selectedApp, status: newStatus })
       setApplications(applications.map(a => a.id === selectedApp.id ? { ...a, status: newStatus } : a))
+      emitApplicationCreated({ id: selectedApp.id, status: newStatus })
     } else {
       alert("Failed to update status: " + error.message)
     }
@@ -87,19 +91,29 @@ export default function ApplicationsPage() {
   // Unique Services for Filter
   const uniqueServices = Array.from(new Set(applications.map(app => app.services?.title))).filter(Boolean) as string[]
 
-  const filteredApplications = applications.filter(app => {
-    const matchesSearch = 
-      app.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      (app.services?.title || '').toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesStatus = statusFilter === 'All' || app.status === statusFilter
-    const matchesService = serviceFilter === 'All' || app.services?.title === serviceFilter
-    
-    return matchesSearch && matchesStatus && matchesService
-  })
+  const filteredApplications = useMemo(() => {
+    return applications.filter(app => {
+      const query = searchQuery.toLowerCase().trim()
+      const submittedStr = JSON.stringify(app.submitted_data || {}).toLowerCase()
 
-  const totalPages = Math.ceil(filteredApplications.length / ITEMS_PER_PAGE) || 1
-  const paginatedApplications = filteredApplications.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+      const matchesSearch = 
+        !query ||
+        app.id.toLowerCase().includes(query) || 
+        (app.services?.title || '').toLowerCase().includes(query) ||
+        submittedStr.includes(query)
+      
+      const matchesStatus = statusFilter === 'All' || app.status === statusFilter
+      const matchesService = serviceFilter === 'All' || app.services?.title === serviceFilter
+      
+      return matchesSearch && matchesStatus && matchesService
+    })
+  }, [applications, searchQuery, statusFilter, serviceFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filteredApplications.length / ITEMS_PER_PAGE))
+  const paginatedApplications = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredApplications.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredApplications, currentPage, ITEMS_PER_PAGE])
 
   return (
     <div className="space-y-6">
@@ -113,13 +127,21 @@ export default function ApplicationsPage() {
       {/* Filters and Search */}
       <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input 
-            placeholder="Search by Order ID or Service..." 
+            placeholder="Search by Order ID, applicant name, phone, or service..." 
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-emerald-500"
+            className="pl-10 pr-9 bg-slate-50 border-slate-200 focus-visible:ring-emerald-500 rounded-lg text-sm"
           />
+          {searchQuery && (
+            <button 
+              onClick={() => { setSearchQuery(''); setCurrentPage(1); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
         <div className="flex flex-wrap sm:flex-nowrap gap-3">
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500 transition-all">
@@ -196,31 +218,50 @@ export default function ApplicationsPage() {
         </div>
 
         {/* Pagination Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-slate-500 font-medium">
-            Showing <span className="font-bold text-slate-900">{filteredApplications.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-bold text-slate-900">{Math.min(filteredApplications.length, currentPage * ITEMS_PER_PAGE)}</span> of <span className="font-bold text-slate-900">{filteredApplications.length}</span> results
-          </p>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="bg-white border-slate-200 text-slate-700 hover:bg-slate-100"
-            >
-              <ChevronLeft className="w-4 h-4 mr-1" /> Prev
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="bg-white border-slate-200 text-slate-700 hover:bg-slate-100"
-            >
-              Next <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-slate-500 font-medium">
+              Showing <span className="font-bold text-slate-900">{filteredApplications.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-bold text-slate-900">{Math.min(filteredApplications.length, currentPage * ITEMS_PER_PAGE)}</span> of <span className="font-bold text-slate-900">{filteredApplications.length}</span> results
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="bg-white border-slate-200 text-slate-700 hover:bg-slate-100 h-8 px-3 text-xs"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 mr-1" /> Prev
+              </Button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                <Button
+                  key={pageNum}
+                  variant={pageNum === currentPage ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`h-8 w-8 text-xs font-bold rounded-lg p-0 ${
+                    pageNum === currentPage 
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {pageNum}
+                </Button>
+              ))}
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="bg-white border-slate-200 text-slate-700 hover:bg-slate-100 h-8 px-3 text-xs"
+              >
+                Next <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Details Modal */}

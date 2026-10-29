@@ -1,27 +1,47 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Lock, ArrowRight, Loader2, CheckCircle2, MessageCircle, Layers, User, Mail, UserPlus } from 'lucide-react'
+import { Lock, ArrowRight, Loader2, CheckCircle2, MessageCircle, Layers, User, Mail, Building2, UserPlus, Info } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const [phone, setPhone] = useState('')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
+  const [businessName, setBusinessName] = useState('')
   const [otp, setOtp] = useState('')
 
   const [step, setStep] = useState<'form' | 'otp'>('form')
   const [mode, setMode] = useState<'login' | 'register'>('login')
 
   const [loading, setLoading] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [infoMessage, setInfoMessage] = useState<string | null>(null)
 
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          router.replace('/dashboard')
+          return
+        }
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setCheckingAuth(false)
+      }
+    }
+    checkAuth()
+  }, [supabase, router])
 
   const getFormattedPhone = () => {
     const cleanPhone = phone.replace(/\D/g, '')
@@ -33,23 +53,66 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setInfoMessage(null)
 
     try {
       const formattedPhone = getFormattedPhone()
 
-      const { error: authError } = await supabase.auth.signInWithOtp({
-        phone: formattedPhone,
-        options: {
-          data: mode === 'register' ? {
-            full_name: fullName,
-            email: email
-          } : undefined
+      if (mode === 'login') {
+        // Attempt login for existing user (do NOT create user if not registered)
+        const { error: authError } = await supabase.auth.signInWithOtp({
+          phone: formattedPhone,
+          options: {
+            shouldCreateUser: false
+          }
+        })
+
+        if (authError) {
+          // If user doesn't exist, switch to register mode and ask for details
+          const isNotRegistered = 
+            authError.status === 422 || 
+            authError.message.toLowerCase().includes('signups not allowed') ||
+            authError.message.toLowerCase().includes('user not found')
+
+          if (isNotRegistered) {
+            setMode('register')
+            setInfoMessage('New user detected! Please fill your Full Name, Email, and Business Name to create an account.')
+            setLoading(false)
+            return
+          }
+
+          throw authError
         }
-      })
 
-      if (authError) throw authError
+        setStep('otp')
+      } else {
+        // Register mode: validation
+        if (!fullName.trim()) {
+          throw new Error('Please enter your full name')
+        }
+        if (!email.trim() || !email.includes('@')) {
+          throw new Error('Please enter a valid email address')
+        }
+        if (!businessName.trim()) {
+          throw new Error('Please enter your business or center name')
+        }
 
-      setStep('otp')
+        const { error: authError } = await supabase.auth.signInWithOtp({
+          phone: formattedPhone,
+          options: {
+            shouldCreateUser: true,
+            data: {
+              full_name: fullName.trim(),
+              email: email.trim(),
+              business_name: businessName.trim()
+            }
+          }
+        })
+
+        if (authError) throw authError
+
+        setStep('otp')
+      }
     } catch (err: any) {
       console.error(err)
       setError(err.message || 'Failed to send OTP. Please try again.')
@@ -75,6 +138,31 @@ export default function LoginPage() {
       if (verifyError) throw verifyError
 
       if (data.user) {
+        // If register mode, ensure metadata is fully updated
+        if (mode === 'register') {
+          await supabase.auth.updateUser({
+            data: {
+              full_name: fullName.trim(),
+              email: email.trim(),
+              business_name: businessName.trim()
+            }
+          })
+          router.push('/dashboard')
+          router.refresh()
+          return
+        }
+
+        // Check if existing user needs to complete profile
+        const hasCompleteProfile = 
+          Boolean(data.user.user_metadata?.full_name?.trim()) && 
+          Boolean(data.user.user_metadata?.business_name?.trim())
+
+        if (!hasCompleteProfile) {
+          router.push('/dashboard/profile?complete=true')
+          router.refresh()
+          return
+        }
+
         router.push('/dashboard')
         router.refresh()
       }
@@ -84,6 +172,14 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900">
+        <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -180,6 +276,7 @@ export default function LoginPage() {
               onClick={() => {
                 setMode(mode === 'login' ? 'register' : 'login')
                 setError(null)
+                setInfoMessage(null)
               }}
               className="flex items-center gap-2 px-5 py-2 bg-emerald-50 text-emerald-700 font-semibold rounded-lg hover:bg-emerald-100 transition-colors text-[15px]"
             >
@@ -193,18 +290,59 @@ export default function LoginPage() {
 
               {step === 'form' ? (
                 <>
-                  <div className="text-center mb-10">
-                    <h2 className="text-3xl lg:text-4xl font-medium text-gray-900 mb-3 tracking-tight">
+                  {/* Segmented Tab Controls */}
+                  <div className="flex p-1 bg-gray-100 rounded-xl mb-6 w-full">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('login')
+                        setError(null)
+                        setInfoMessage(null)
+                      }}
+                      className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                        mode === 'login'
+                          ? 'bg-white text-emerald-800 shadow-sm'
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      Log In
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('register')
+                        setError(null)
+                        setInfoMessage(null)
+                      }}
+                      className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                        mode === 'register'
+                          ? 'bg-white text-emerald-800 shadow-sm'
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      Sign Up
+                    </button>
+                  </div>
+
+                  <div className="text-center mb-8">
+                    <h2 className="text-3xl lg:text-4xl font-medium text-gray-900 mb-2 tracking-tight">
                       {mode === 'login' ? 'Welcome Back' : 'Create Account'}
                     </h2>
                     <p className="text-gray-500 text-[15px]">
                       {mode === 'login'
-                        ? 'Log in to securely access your dashboard.'
+                        ? 'Enter your mobile number to get WhatsApp OTP.'
                         : 'Join CSCCopy in just a minute.'}
                     </p>
                   </div>
 
-                  <form onSubmit={handleRequestOtp} className="space-y-6 w-full">
+                  {infoMessage && (
+                    <div className="mb-6 p-4 text-sm text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl text-left font-medium flex items-start gap-3 shadow-sm">
+                      <Info className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <span>{infoMessage}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleRequestOtp} className="space-y-4 w-full">
                     {error && (
                       <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl text-center font-medium">
                         {error}
@@ -240,6 +378,20 @@ export default function LoginPage() {
                             required
                           />
                         </div>
+
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Building2 className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <Input
+                            type="text"
+                            placeholder="Business / CSC Center Name"
+                            className="pl-12 h-14 bg-white border-gray-300 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:border-transparent text-[15px] text-gray-900 rounded-xl transition-all shadow-sm"
+                            value={businessName}
+                            onChange={(e) => setBusinessName(e.target.value)}
+                            required
+                          />
+                        </div>
                       </>
                     )}
 
@@ -262,13 +414,18 @@ export default function LoginPage() {
                     <Button
                       type="submit"
                       className="w-full h-14 text-[16px] font-medium bg-gradient-to-r from-emerald-700 to-emerald-600 hover:opacity-90 text-white rounded-xl shadow-[0_8px_20px_rgba(4,_120,_87,_0.2)] transition-all border-none mt-2"
-                      disabled={loading || phone.length < 10 || (mode === 'register' && (!fullName || !email))}
+                      disabled={
+                        loading ||
+                        phone.length < 10 ||
+                        (mode === 'register' && (!fullName.trim() || !email.trim() || !businessName.trim()))
+                      }
                     >
                       {loading ? (
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       ) : (
                         <span className="flex items-center">
-                          Send OTP via WhatsApp <ArrowRight className="inline ml-2 w-4 h-4" />
+                          {mode === 'login' ? 'Send OTP via WhatsApp' : 'Create Account & Send OTP'}
+                          <ArrowRight className="inline ml-2 w-4 h-4" />
                         </span>
                       )}
                     </Button>
@@ -282,6 +439,7 @@ export default function LoginPage() {
                           onClick={() => {
                             setMode(mode === 'login' ? 'register' : 'login')
                             setError(null)
+                            setInfoMessage(null)
                           }}
                           className="font-bold text-emerald-700 hover:underline"
                         >
@@ -351,11 +509,13 @@ export default function LoginPage() {
           </div>
 
           {/* Bottom Footer Links */}
-          <div className="flex items-center justify-between text-[13px] text-gray-400 font-medium pt-8 mt-auto border-t border-gray-100">
-            <p>© 2026 CSCCopy</p>
-            <div className="flex gap-6">
-              <a href="#" className="hover:text-gray-600 transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-gray-600 transition-colors">Privacy Policy</a>
+          <div className="flex flex-col sm:flex-row items-center justify-between text-[13px] text-gray-400 font-medium pt-8 mt-auto border-t border-gray-100 gap-3">
+            <p>© {new Date().getFullYear()} Aryan Enterprises (CSCCopy)</p>
+            <div className="flex flex-wrap gap-4 text-xs">
+              <a href="/terms-and-conditions" className="hover:text-emerald-600 transition-colors">Terms</a>
+              <a href="/privacy-policy" className="hover:text-emerald-600 transition-colors">Privacy Policy</a>
+              <a href="/refund-policy" className="hover:text-emerald-600 transition-colors">Refund Policy</a>
+              <a href="/contact" className="hover:text-emerald-600 transition-colors">Contact</a>
             </div>
           </div>
 

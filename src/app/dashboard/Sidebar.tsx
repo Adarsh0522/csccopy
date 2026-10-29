@@ -30,7 +30,7 @@ export function Sidebar() {
   const menuLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
     { name: 'PVC Print', href: '/dashboard/pvc-print', icon: <Printer className="w-5 h-5" /> },
-    { name: 'PAN Services', href: '/dashboard/pan-services', icon: <IdCard className="w-5 h-5" /> },
+    { name: 'PAN Form Generator', href: '/dashboard/pan-services', icon: <IdCard className="w-5 h-5" /> },
   ]
 
   const generalLinks = [

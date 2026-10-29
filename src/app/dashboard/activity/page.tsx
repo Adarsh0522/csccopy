@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { subscribeToApplications } from '@/lib/realtime'
 import { Clock3, CheckCircle2, Clock, XCircle, FileText } from 'lucide-react'
 
 export default function ActivityPage() {
@@ -9,8 +10,8 @@ export default function ActivityPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchActivities = async () => {
-      setLoading(true)
+    const fetchActivities = async (isInitial: boolean = false) => {
+      if (isInitial) setLoading(true)
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       const userId = session?.user?.id || '11111111-1111-1111-1111-111111111111'
@@ -22,10 +23,18 @@ export default function ActivityPage() {
         .order('created_at', { ascending: false })
 
       if (data) setActivities(data)
-      setLoading(false)
+      if (isInitial) setLoading(false)
     }
 
-    fetchActivities()
+    fetchActivities(true)
+
+    const unsub = subscribeToApplications(() => {
+      fetchActivities(false)
+    })
+
+    return () => {
+      unsub()
+    }
   }, [])
 
   const getStatusBadge = (status: string) => {

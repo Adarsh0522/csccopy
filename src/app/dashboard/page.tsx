@@ -3,13 +3,16 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, Printer, FileText, Camera, Clock, CheckCircle2, Clock3, UploadCloud, Fingerprint, CreditCard, User, HelpCircle, Home, IndianRupee } from 'lucide-react'
+import { Plus, Printer, FileText, Camera, Clock, CheckCircle2, Clock3, UploadCloud, Fingerprint, CreditCard, User, HelpCircle, Home, IndianRupee, ArrowRight, Wallet, AlertTriangle, AlertCircle, Lock, Loader2 } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
+import { deductWalletBalance } from '@/lib/actions/wallet'
+import { emitWalletUpdate, emitApplicationCreated, subscribeToWallet, subscribeToApplications } from '@/lib/realtime'
+import { UtilityTabs } from '@/components/utilities/UtilityTabs'
 
 type FormField = {
   name: string;
@@ -41,9 +44,9 @@ const iconMap: Record<string, any> = {
   Home
 };
 
-const mockServices: Service[] = [
+const defaultCoreServices: Service[] = [
   {
-    id: '1',
+    id: 'core-pvc-print',
     title: 'PVC Print',
     icon: 'Printer',
     price: 10,
@@ -52,62 +55,14 @@ const mockServices: Service[] = [
     internal_route: '/dashboard/pvc-print',
   },
   {
-    id: '2',
-    title: 'PAN Services',
+    id: 'core-pan-services',
+    title: 'PAN Form Generator',
     icon: 'IdCard',
-    price: 107,
+    price: 10,
     is_active: true,
     service_type: 'internal_tool',
     internal_route: '/dashboard/pan-services',
   },
-  {
-    id: '3',
-    title: 'Aadhaar Print',
-    icon: 'Fingerprint',
-    price: 10,
-    is_active: false,
-    service_type: 'internal_tool',
-    internal_route: '#',
-  },
-  {
-    id: '4',
-    title: 'New Voter ID',
-    icon: 'User',
-    price: 50,
-    is_active: true,
-    service_type: 'dynamic_form',
-    form_schema: [
-      { name: 'full_name', label: 'Full Name', type: 'text' },
-      { name: 'dob', label: 'Date of Birth', type: 'date' },
-      { name: 'state', label: 'State', type: 'select', options: ['Maharashtra', 'Gujarat', 'Delhi', 'Karnataka'] },
-      { name: 'photo', label: 'Passport Photo', type: 'file' },
-    ]
-  },
-  {
-    id: '5',
-    title: 'Passport Apply',
-    icon: 'Camera',
-    price: 1500,
-    is_active: true,
-    service_type: 'dynamic_form',
-    form_schema: [
-      { name: 'applicant_name', label: 'Applicant Name', type: 'text' },
-      { name: 'email', label: 'Email ID', type: 'text' },
-      { name: 'aadhaar_file', label: 'Aadhaar Copy', type: 'file' },
-    ]
-  },
-  {
-    id: '6',
-    title: 'Driving License',
-    icon: 'CreditCard',
-    price: 250,
-    is_active: true,
-    service_type: 'dynamic_form',
-    form_schema: [
-      { name: 'dl_number', label: 'DL Number', type: 'text' },
-      { name: 'rto', label: 'RTO Office', type: 'text' },
-    ]
-  }
 ];
 
 const formatIconName = (name: string) => {
@@ -122,12 +77,21 @@ const formatIconName = (name: string) => {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('Remove BG')
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [dbServices, setDbServices] = useState<Service[]>([]);
+  const [dbServices, setDbServices] = useState<Service[]>(defaultCoreServices);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
-  const tabs = ['Remove BG', 'Crop Passport', 'Compress JPG', 'JPG to PDF']
+  const [incompleteProfile, setIncompleteProfile] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [submittedApp, setSubmittedApp] = useState<{
+    id: string;
+    title: string;
+    price: number;
+    newBalance: number;
+  } | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -135,13 +99,61 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession()
       const userId = session?.user?.id || '11111111-1111-1111-1111-111111111111'
 
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const hasComplete = Boolean(user.user_metadata?.full_name?.trim()) && Boolean(user.user_metadata?.business_name?.trim())
+        setIncompleteProfile(!hasComplete)
+
+        const { data: wData } = await supabase
+          .from('wallet')
+          .select('balance')
+          .eq('user_id', user.id)
+          .maybeSingle()
+        if (wData?.balance != null) {
+          setWalletBalance(Number(wData.balance))
+        }
+      }
+
       const { data: srvData } = await supabase.from('services').select('*').order('created_at', { ascending: false })
-      if (srvData) {
-        const mapped = srvData.map((row: any) => ({
-          ...row,
-          service_type: 'dynamic_form',
-        }))
-        setDbServices(mapped)
+      if (srvData && srvData.length > 0) {
+        const pvcDb = srvData.find((s: any) => s.title?.toLowerCase().trim() === 'pvc print')
+        const panDb = srvData.find((s: any) => {
+          const t = s.title?.toLowerCase().trim()
+          return t === 'pan services' || t === 'pan form generator'
+        })
+
+        const dynamicServices = srvData
+          .filter((s: any) => {
+            const t = s.title?.toLowerCase().trim()
+            return t !== 'pvc print' && t !== 'pan services' && t !== 'pan form generator'
+          })
+          .map((row: any) => ({
+            ...row,
+            service_type: 'dynamic_form' as const,
+          }))
+
+        const coreTools: Service[] = [
+          {
+            id: pvcDb?.id || 'core-pvc-print',
+            title: pvcDb?.title || 'PVC Print',
+            icon: pvcDb?.icon || 'Printer',
+            price: pvcDb?.price != null ? Number(pvcDb.price) : 10,
+            is_active: pvcDb?.is_active ?? true,
+            service_type: 'internal_tool',
+            internal_route: '/dashboard/pvc-print',
+          },
+          {
+            id: panDb?.id || 'core-pan-services',
+            title: 'PAN Form Generator',
+            icon: panDb?.icon || 'IdCard',
+            price: panDb?.price != null ? Number(panDb.price) : 10,
+            is_active: panDb?.is_active ?? true,
+            service_type: 'internal_tool',
+            internal_route: '/dashboard/pan-services',
+          },
+        ]
+
+        setDbServices([...coreTools, ...dynamicServices])
       }
 
       const { data: actData } = await supabase
@@ -156,6 +168,37 @@ export default function DashboardPage() {
       }
     }
     fetchDashboardData()
+
+    let unsubWallet: (() => void) | null = null
+    const setupSubscriptions = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        unsubWallet = subscribeToWallet(user.id, (newBal) => {
+          if (newBal != null) setWalletBalance(Number(newBal))
+        })
+      }
+    }
+    setupSubscriptions()
+
+    const unsubApps = subscribeToApplications(async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: actData } = await supabase
+          .from('service_applications')
+          .select('*, services(title)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5)
+        if (actData) setRecentActivity(actData)
+      }
+    })
+
+    return () => {
+      if (unsubWallet) unsubWallet()
+      unsubApps()
+    }
   }, [])
 
   const getStatusColor = (status: string) => {
@@ -168,13 +211,30 @@ export default function DashboardPage() {
     }
   }
 
-  const handleServiceClick = (service: Service) => {
+  const handleServiceClick = async (service: Service) => {
     if (!service.is_active) return;
 
     if (service.service_type === 'internal_tool' && service.internal_route) {
       router.push(service.internal_route);
     } else if (service.service_type === 'dynamic_form') {
       setSelectedService(service);
+      setSubmitError(null);
+      setIsSubmitting(false);
+
+      // Refresh current wallet balance
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: wData } = await supabase
+          .from('wallet')
+          .select('balance')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (wData?.balance != null) {
+          setWalletBalance(Number(wData.balance));
+        }
+      }
+
       setIsModalOpen(true);
     }
   };
@@ -183,38 +243,125 @@ export default function DashboardPage() {
     e.preventDefault();
     if (!selectedService) return;
 
+    setIsSubmitting(true);
+    setSubmitError(null);
+
     const formData = new FormData(e.target as HTMLFormElement);
     const submittedData: Record<string, any> = {};
     for (const [key, value] of formData.entries()) {
       submittedData[key] = value;
     }
 
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    // For MVP/testing if user auth isn't fully set up on the frontend, use a dummy UUID
-    const userId = session?.user?.id || '11111111-1111-1111-1111-111111111111'
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setSubmitError("Please log in to submit this service application.");
+        setIsSubmitting(false);
+        return;
+      }
 
-    const payload = {
-      user_id: userId,
-      service_id: selectedService.id,
-      status: 'Pending',
-      submitted_data: submittedData,
-      charge_amount: selectedService.price
+      const servicePrice = Number(selectedService.price) || 0;
+      let newBalance = walletBalance ?? 0;
+
+      // 1. Process Wallet Deduction if fee > 0
+      if (servicePrice > 0) {
+        const deductResult = await deductWalletBalance(
+          servicePrice, 
+          `Service Application: ${selectedService.title}`
+        );
+
+        if (!deductResult || !deductResult.success) {
+          setSubmitError(deductResult?.message || `Insufficient wallet balance. You need ₹${servicePrice} to apply.`);
+          setIsSubmitting(false);
+          return;
+        }
+
+        newBalance = deductResult.new_balance != null ? Number(deductResult.new_balance) : newBalance;
+        setWalletBalance(newBalance);
+        emitWalletUpdate(newBalance);
+      }
+
+      // 2. Insert into service_applications
+      const payload = {
+        user_id: user.id,
+        service_id: selectedService.id,
+        status: 'Pending',
+        submitted_data: submittedData,
+        charge_amount: servicePrice
+      };
+
+      const { data: appData, error: appError } = await supabase
+        .from('service_applications')
+        .insert([payload])
+        .select()
+        .single();
+
+      if (appError) {
+        console.error("Application record error:", appError);
+        setSubmitError("Application recorded with issue: " + appError.message);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Emit real-time application created event for Admin and all clients
+      emitApplicationCreated(appData);
+
+      // 3. Success! Close form modal and open professional confirmation dialog
+      setIsModalOpen(false);
+      setSubmittedApp({
+        id: appData?.id || 'APP-' + Math.floor(100000 + Math.random() * 900000),
+        title: selectedService.title,
+        price: servicePrice,
+        newBalance: newBalance
+      });
+      setIsSuccessModalOpen(true);
+
+      // 4. Refresh recent activity
+      const { data: actData } = await supabase
+        .from('service_applications')
+        .select('*, services(title)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (actData) {
+        setRecentActivity(actData);
+      }
+
+    } catch (err: any) {
+      console.error(err);
+      setSubmitError(err.message || "An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const { error } = await supabase.from('service_applications').insert([payload])
-
-    if (error) {
-      alert("Error submitting application: " + error.message)
-    } else {
-      alert(`Application submitted successfully! Wallet deducted by ₹${selectedService.price}`)
-      setIsModalOpen(false)
-    }
-  }
+  };
 
   return (
-    <div className="w-full h-full max-w-7xl mx-auto animate-in fade-in duration-500 space-y-12 pb-12">
+    <div className="w-full h-full max-w-7xl mx-auto animate-in fade-in duration-500 space-y-10 pb-12">
+
+      {/* Incomplete Profile Reminder Banner */}
+      {incompleteProfile && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm animate-in fade-in">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-700">
+              <User className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-bold text-gray-900 text-sm">Complete Your Profile</p>
+              <p className="text-xs text-gray-600 mt-0.5">Your operator name and business name are not set yet. Please complete your profile to enable personalized documents and services.</p>
+            </div>
+          </div>
+          <Link 
+            href="/dashboard/profile?complete=true" 
+            className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all whitespace-nowrap text-center flex items-center justify-center gap-1.5 self-start sm:self-auto"
+          >
+            Update Profile
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
 
       {/* Primary Section: Available Tools Grid */}
       <div className="space-y-4">
@@ -222,7 +369,7 @@ export default function DashboardPage() {
         
         {/* Horizontal Services Panel Layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {[...mockServices, ...dbServices].map((service, index) => {
+          {dbServices.map((service, index) => {
             const formattedIcon = formatIconName(service.icon);
             const IconComponent = (LucideIcons as any)[formattedIcon] || Plus;
             const iconColors = ['text-blue-600', 'text-red-600', 'text-emerald-600', 'text-amber-500', 'text-indigo-600', 'text-pink-600'];
@@ -272,51 +419,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Free Utility Tools Section */}
-      <div className="w-full bg-gradient-to-br from-emerald-100/80 via-teal-100/60 to-blue-100/50 border border-emerald-200/60 shadow-sm rounded-[2rem] p-6 sm:p-10 my-8">
-
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Free Utility Tools</h2>
-          <p className="text-sm text-gray-500 mt-2">100% Client-Side. No wallet deduction.</p>
-        </div>
-
-        {/* Centered Tabs */}
-        <div className="flex justify-center w-full mb-8">
-          <div className="bg-white/80 backdrop-blur-md p-1.5 rounded-full inline-flex shadow-sm border border-gray-200/50 overflow-x-auto custom-scrollbar hide-scrollbar max-w-full">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`${activeTab === tab
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md font-semibold transform scale-100'
-                  : 'text-gray-500 hover:text-emerald-700 hover:bg-white/80 font-medium'
-                  } rounded-full px-6 py-2.5 transition-all duration-300 ease-out whitespace-nowrap`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Tab Content & Premium Dropzone */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out" key={activeTab}>
-          <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 sm:p-12 w-full max-w-4xl mx-auto">
-
-            <div className="text-center mb-8">
-              <h3 className="text-xl font-bold text-gray-900">{activeTab}</h3>
-              <p className="text-sm text-gray-500 mt-2">Drag and drop your file here to get started.</p>
-            </div>
-
-            <div className="border-2 border-dashed border-emerald-300/80 hover:border-emerald-500 bg-white/60 hover:bg-white rounded-3xl flex flex-col items-center justify-center p-12 transition-all duration-300 cursor-pointer group shadow-sm">
-              <UploadCloud className="text-teal-500 h-14 w-14 mb-4 transform group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-300 ease-out" />
-              <p className="text-sm font-semibold text-gray-700 group-hover:text-emerald-700 transition-colors">Click to upload or drag and drop</p>
-              <p className="text-xs text-gray-500 mt-2">SVG, PNG, JPG or GIF (max. 10MB)</p>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
+      <UtilityTabs />
 
       {/* Secondary Section: Recent Transactions */}
       <div className="space-y-4">
@@ -377,24 +480,86 @@ export default function DashboardPage() {
 
       {/* Dynamic Form Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <form onSubmit={handleFormSubmit}>
+        <DialogContent className="sm:max-w-[480px] bg-white p-6 rounded-2xl border border-slate-200 shadow-2xl max-h-[90vh] overflow-y-auto">
+          <form onSubmit={handleFormSubmit} className="space-y-4">
             <DialogHeader>
-              <DialogTitle>{selectedService?.title}</DialogTitle>
-              <DialogDescription>
-                Fill in the details below. This service costs ₹{selectedService?.price}.
+              <DialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-emerald-600" />
+                {selectedService?.title}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-slate-500">
+                Please complete all required fields below to submit your service application.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+
+            {/* Service Charge & Wallet Balance Snapshot */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-500 font-medium">Service Fee:</span>
+                <span className="font-extrabold text-emerald-600 text-sm">₹{selectedService?.price ?? 0}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Wallet className="w-3.5 h-3.5 text-slate-500" />
+                <span className="text-slate-500 font-medium">Your Balance:</span>
+                <span className={`font-bold ${walletBalance !== null && walletBalance < (selectedService?.price || 0) ? 'text-red-600 font-extrabold' : 'text-slate-800'}`}>
+                  ₹{walletBalance !== null ? walletBalance.toFixed(2) : '...'}
+                </span>
+              </div>
+            </div>
+
+            {/* Important Instructions Box */}
+            <div className="bg-amber-50/90 border border-amber-200 rounded-xl p-3.5 space-y-1.5 text-xs text-amber-900">
+              <div className="flex items-center gap-1.5 font-bold text-amber-900">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Important Instructions & Policy:</span>
+              </div>
+              <ul className="list-disc list-inside space-y-1 text-amber-800 text-[11px] leading-relaxed pl-0.5">
+                <li>Please enter genuine and verified applicant information.</li>
+                <li>An application fee of <strong>₹{selectedService?.price}</strong> will be deducted immediately from your wallet upon submission.</li>
+                <li>Fee deductions for processed applications are <strong>strictly non-refundable</strong>.</li>
+              </ul>
+            </div>
+
+            {/* Insufficient Balance Notice */}
+            {walletBalance !== null && walletBalance < (selectedService?.price || 0) && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-red-800">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-bold">Insufficient Wallet Balance</p>
+                  <p className="text-[11px] mt-0.5 text-red-700">
+                    You need ₹{selectedService?.price} for this service, but your wallet balance is only ₹{walletBalance.toFixed(2)}.
+                  </p>
+                  <Link 
+                    href="/dashboard/wallet"
+                    className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-red-800 bg-red-100 hover:bg-red-200 px-3 py-1 rounded-lg transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Recharge Wallet Now
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Error Message If Any */}
+            {submitError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <span>{submitError}</span>
+              </div>
+            )}
+
+            {/* Dynamic Fields */}
+            <div className="space-y-3.5 py-2">
               {selectedService?.form_schema?.map((field) => (
-                <div key={field.name} className="flex flex-col gap-2">
-                  <Label htmlFor={field.name} className="text-sm font-bold text-slate-700 mb-1.5">{field.label}</Label>
+                <div key={field.name} className="flex flex-col gap-1.5">
+                  <Label htmlFor={field.name} className="text-xs font-bold text-slate-700">
+                    {field.label}
+                  </Label>
                   
                   {field.type === 'select' ? (
                     <select 
                       id={field.name} 
                       name={field.name} 
-                      className="flex h-10 w-full bg-white border-2 border-slate-200 text-slate-900 rounded-lg px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-10 w-full bg-slate-50 border-2 border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                       required
                     >
                       <option value="">Select {field.label}</option>
@@ -407,7 +572,7 @@ export default function DashboardPage() {
                       type="file" 
                       id={field.name} 
                       name={field.name}
-                      className="flex h-10 w-full bg-white border-2 border-slate-200 text-slate-900 rounded-lg px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-10 w-full bg-slate-50 border-2 border-slate-200 text-slate-900 rounded-xl px-3 py-1.5 text-sm file:border-0 file:bg-transparent file:text-xs file:font-semibold focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                       required
                     />
                   ) : (
@@ -415,20 +580,112 @@ export default function DashboardPage() {
                       id={field.name} 
                       name={field.name}
                       type={field.type} 
-                      placeholder={field.label} 
-                      className="bg-white border-2 border-slate-200 text-slate-900 rounded-lg focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/20 transition-colors placeholder:text-slate-400"
+                      placeholder={`Enter ${field.label}`} 
+                      className="bg-slate-50 border-2 border-slate-200 text-slate-900 rounded-xl focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 text-sm h-10"
                       required
                     />
                   )}
                 </div>
               ))}
             </div>
-            <DialogFooter>
-              <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-6 text-lg rounded-xl shadow-md transition-all">
-                Pay ₹{selectedService?.price} & Submit
-              </Button>
+
+            <DialogFooter className="pt-2">
+              {walletBalance !== null && walletBalance < (selectedService?.price || 0) ? (
+                <Button 
+                  type="button" 
+                  onClick={() => router.push('/dashboard/wallet')}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                >
+                  <Wallet className="w-4 h-4" /> Recharge Wallet to Continue
+                </Button>
+              ) : (
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Deducting Wallet & Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      Pay ₹{selectedService?.price} & Submit Application
+                    </>
+                  )}
+                </Button>
+              )}
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Professional Success Modal */}
+      <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+        <DialogContent className="sm:max-w-[440px] bg-white p-6 rounded-3xl border border-slate-200 shadow-2xl text-center">
+          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-emerald-200">
+            <CheckCircle2 className="w-9 h-9" />
+          </div>
+
+          <DialogHeader className="text-center sm:text-center">
+            <DialogTitle className="text-xl font-extrabold text-slate-900">
+              Application Submitted Successfully!
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500 mt-1">
+              Your request has been received and queued for admin processing.
+            </DialogDescription>
+          </DialogHeader>
+
+          {submittedApp && (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 my-4 space-y-2.5 text-xs text-left">
+              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                <span className="text-slate-500 font-medium">Service Name</span>
+                <span className="font-bold text-slate-900">{submittedApp.title}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                <span className="text-slate-500 font-medium">Amount Deducted</span>
+                <span className="font-extrabold text-emerald-600">₹{submittedApp.price.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                <span className="text-slate-500 font-medium">Updated Wallet Balance</span>
+                <span className="font-bold text-slate-900">₹{submittedApp.newBalance.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                <span className="text-slate-500 font-medium">Status</span>
+                <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                  <Clock className="w-3 h-3" /> Pending Review
+                </span>
+              </div>
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-slate-500 font-medium">Reference Order ID</span>
+                <span className="font-mono text-slate-700 font-bold">#{submittedApp.id.slice(0, 8).toUpperCase()}</span>
+              </div>
+            </div>
+          )}
+
+          <p className="text-[11px] text-slate-500 leading-relaxed mb-4">
+            You can monitor real-time updates and download completed outputs directly from the <strong>Recent Activity</strong> section.
+          </p>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => { setIsSuccessModalOpen(false); router.push('/dashboard/activity'); }}
+              className="w-full sm:flex-1 bg-white border-slate-200 text-slate-700 hover:bg-slate-100 font-bold rounded-xl h-11 text-xs"
+            >
+              View in Activity
+            </Button>
+            <Button 
+              type="button" 
+              onClick={() => setIsSuccessModalOpen(false)}
+              className="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl h-11 text-xs shadow-md"
+            >
+              Done
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -1,71 +1,106 @@
 import Link from 'next/link'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import { FileText, FileEdit } from 'lucide-react'
+import { FileText, FileEdit, IndianRupee, ArrowRight, ShieldCheck } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 
 export const metadata = {
-  title: "PAN Services | CSCCopy",
+  title: "PAN Form Generator | CSCCopy",
 };
 
-export default function PanServicesPage() {
+export default async function PanServicesPage() {
+  let panPrice = 10
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('services')
+      .select('price')
+      .ilike('title', '%pan%')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (data?.price != null) {
+      panPrice = Number(data.price)
+    }
+  } catch (err) {
+    console.error('Failed to load PAN price:', err)
+  }
+
   const tools = [
     {
       title: 'Generate New PAN Form',
-      description: 'Fill details and securely generate a professional new PAN application PDF.',
-      icon: <FileText className="w-8 h-8 text-white" />,
+      description: 'Fill applicant details and generate Form 49A application PDF.',
+      icon: FileText,
       href: '/dashboard/pan-services/new-pan',
-      gradient: 'from-emerald-500 to-cyan-400',
-      shadow: 'hover:shadow-emerald-500/20',
-      hoverText: 'group-hover:text-emerald-600'
+      iconColor: 'text-blue-600',
     },
     {
       title: 'Generate PAN Correction Form',
-      description: 'Generate PAN Correction/Update forms with proper annexures and mappings.',
-      icon: <FileEdit className="w-8 h-8 text-white" />,
+      description: 'Update or correct existing PAN details with proper CSF form mapping.',
+      icon: FileEdit,
       href: '/dashboard/pan-services/pan-correction',
-      gradient: 'from-emerald-500 to-teal-400',
-      shadow: 'hover:shadow-emerald-500/20',
-      hoverText: 'group-hover:text-emerald-600'
+      iconColor: 'text-emerald-600',
     }
   ]
 
   return (
     <div className="w-full flex-1 p-6 md:p-8 bg-gray-50 min-h-[calc(100vh-73px)]">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">PAN Services</h1>
-          <p className="text-gray-500 mt-2">
-            Select a service below to generate professional PAN application forms locally.
-          </p>
+      <div className="max-w-6xl mx-auto space-y-8">
+        
+        {/* Page Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">PAN Form Generator</h1>
+            <p className="text-gray-500 mt-1.5 text-sm">
+              Select a form below to generate professional PAN application documents.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 self-start md:self-auto px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold shadow-xs">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>Service Fee: ₹{panPrice} per application</span>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {tools.map((tool, index) => (
-            <Link key={tool.title} href={tool.href} className="group block">
-              <Card className={`h-full border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${tool.shadow} rounded-2xl overflow-hidden relative`}>
-                {/* Subtle top gradient line */}
-                <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${tool.gradient} opacity-70 group-hover:opacity-100 transition-opacity duration-300`} />
-                
-                <CardHeader className="pt-8 pb-4">
-                  <div className="flex items-center space-x-5">
-                    <div className={`p-4 rounded-2xl bg-gradient-to-br ${tool.gradient} shadow-md transform transition-all group-hover:scale-105 duration-300`}>
-                      {tool.icon}
-                    </div>
-                    <div>
-                      <CardTitle className={`text-xl font-bold tracking-tight text-gray-900 transition-colors duration-300 ${tool.hoverText}`}>
-                        {tool.title}
-                      </CardTitle>
+        {/* Available Forms Grid with Generous Width */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900">Available Forms</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+            {tools.map((tool) => {
+              const Icon = tool.icon
+              return (
+                <Link
+                  key={tool.title}
+                  href={tool.href}
+                  className="bg-white p-5 sm:p-6 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md hover:border-emerald-300 hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-5 group cursor-pointer"
+                >
+                  {/* Left Icon */}
+                  <div className={`flex-shrink-0 p-3.5 sm:p-4 bg-slate-50 rounded-2xl ${tool.iconColor} group-hover:scale-105 group-hover:bg-emerald-50 transition-all duration-300 border border-slate-100`}>
+                    <Icon className="h-8 w-8 sm:h-9 sm:w-9" strokeWidth={1.5} />
+                  </div>
+
+                  {/* Right Content */}
+                  <div className="flex flex-col flex-grow min-w-0 justify-center">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug group-hover:text-emerald-700 transition-colors">
+                      {tool.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-1">
+                      {tool.description}
+                    </p>
+                    <div className="flex items-center justify-between text-sm font-semibold text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
+                      <span className="flex items-center text-emerald-600 font-extrabold text-sm sm:text-base">
+                        <IndianRupee className="h-4 w-4 mr-0.5" strokeWidth={2.5} />
+                        {panPrice}
+                      </span>
+                      <span className="text-xs font-bold text-emerald-600 inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                        Start <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-sm text-gray-600 leading-relaxed font-medium">
-                    {tool.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+                </Link>
+              )
+            })}
+          </div>
         </div>
+
       </div>
     </div>
   )

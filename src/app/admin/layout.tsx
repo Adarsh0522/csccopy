@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { LayoutDashboard, FileText, Settings, ArrowLeft, LogOut } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
+import { subscribeToApplications } from '@/lib/realtime'
 
 export default function AdminLayout({
   children,
@@ -42,25 +43,26 @@ export default function AdminLayout({
     if (!isAuthorized) return
 
     const fetchPendingCount = async () => {
-      const { count } = await supabase
-        .from('service_applications')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'Pending')
-      
-      setPendingCount(count || 0)
+      try {
+        const { count } = await supabase
+          .from('service_applications')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'Pending')
+        
+        setPendingCount(count || 0)
+      } catch (err) {
+        console.error('Failed to fetch pending count:', err)
+      }
     }
 
     fetchPendingCount()
 
-    const channel = supabase
-      .channel('layout_pending_count')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'service_applications' }, () => {
-        fetchPendingCount()
-      })
-      .subscribe()
+    const unsubscribe = subscribeToApplications(() => {
+      fetchPendingCount()
+    })
 
     return () => {
-      supabase.removeChannel(channel)
+      unsubscribe()
     }
   }, [isAuthorized, supabase])
 
