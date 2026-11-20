@@ -60,19 +60,21 @@ export function UtilityTabs() {
   const currentTool = UTILITY_TOOLS.find((t) => t.id === activeTab) || UTILITY_TOOLS[0]
 
   return (
-    <div className="w-full bg-gradient-to-br from-emerald-100/70 via-teal-50/50 to-blue-100/40 border border-emerald-200/80 shadow-md rounded-[2.5rem] p-6 sm:p-10 my-8 space-y-8">
+    <div className="w-full bg-[#1b183d]/90 border border-indigo-400/25 shadow-lg rounded-2xl sm:rounded-3xl p-6 sm:p-8 space-y-6 text-white">
       {/* Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-2">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-600/10 border border-emerald-600/20 text-emerald-800 text-xs font-bold">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>100% Client-Side Free Utilities • Zero Wallet Deduction</span>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-indigo-500/20">
+        <h2 className="border-l-4 border-emerald-400 pl-3 text-xl font-extrabold text-white">
+          Free Smart Utility Tools
+        </h2>
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-bold self-start sm:self-auto">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <span>100% Client-Side Free • Zero Wallet Deduction</span>
         </div>
-        <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Free Smart Utility Tools</h2>
       </div>
 
       {/* Tab Selector Pills */}
       <div className="flex justify-center w-full">
-        <div className="bg-white/90 backdrop-blur-md p-1.5 rounded-2xl sm:rounded-full inline-flex shadow-sm border border-gray-200/60 overflow-x-auto max-w-full gap-1 custom-scrollbar">
+        <div className="p-1.5 rounded-2xl sm:rounded-full inline-flex flex-wrap sm:flex-nowrap justify-center gap-2 overflow-x-auto max-w-full custom-scrollbar">
           {UTILITY_TOOLS.map((tool) => {
             const Icon = tool.icon
             const isActive = activeTab === tool.id
@@ -81,13 +83,13 @@ export function UtilityTabs() {
                 key={tool.id}
                 type="button"
                 onClick={() => setActiveTab(tool.id)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all duration-300 whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md transform scale-[1.02]'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-white/90'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold shadow-md border-2 border-transparent'
+                    : 'bg-[#13112c] border border-indigo-400/25 text-indigo-200 hover:border-emerald-400/50 hover:text-white'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-emerald-600'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-slate-950' : 'text-indigo-300'}`} />
                 <span>{tool.name}</span>
               </button>
             )
@@ -96,18 +98,18 @@ export function UtilityTabs() {
       </div>
 
       {/* Active Tool Container */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-10 w-full max-w-5xl mx-auto space-y-6">
+      <div className="bg-[#13112c]/80 rounded-2xl border border-indigo-400/30 p-6 sm:p-8 w-full max-w-5xl mx-auto space-y-6 text-white">
         {/* Tool Description Bar */}
-        <div className="border-b border-gray-100 pb-4">
+        <div className="border-b border-indigo-500/20 pb-4">
           <div className="flex items-center gap-2">
-            <currentTool.icon className="w-5 h-5 text-emerald-600" />
-            <h3 className="text-xl font-bold text-gray-900">{currentTool.label}</h3>
+            <currentTool.icon className="w-5 h-5 text-emerald-400" />
+            <h3 className="text-xl font-bold text-white">{currentTool.label}</h3>
           </div>
-          <p className="text-xs text-gray-500 mt-1">{currentTool.description}</p>
+          <p className="text-xs text-indigo-200/80 mt-1">{currentTool.description}</p>
         </div>
 
         {/* Dynamic Tool Component */}
-        <div className="animate-in fade-in duration-300" key={activeTab}>
+        <div className="animate-in fade-in duration-300 text-slate-100" key={activeTab}>
           {activeTab === 'crop-passport' && <PassportPhotoTool />}
           {activeTab === 'remove-bg' && <RemoveBgTool />}
           {activeTab === 'compress-jpg' && <CompressJpgTool />}

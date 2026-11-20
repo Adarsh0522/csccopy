@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, FileText, Settings, ArrowLeft, LogOut } from 'lucide-react'
+import { LayoutDashboard, FileText, Settings, ArrowLeft, LogOut, Users } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { subscribeToApplications } from '@/lib/realtime'
@@ -68,8 +68,13 @@ export default function AdminLayout({
 
   if (!isAuthorized) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-slate-100">
-        <div className="animate-pulse text-emerald-600 font-medium">Verifying access...</div>
+      <div 
+        className="h-screen w-screen flex items-center justify-center text-white"
+        style={{ background: 'linear-gradient(135deg, #0d0b21 0%, #161338 50%, #1e1b4b 100%)' }}
+      >
+        <div className="animate-pulse text-emerald-400 font-bold flex items-center gap-2">
+          Verifying access...
+        </div>
       </div>
     )
   }
@@ -80,48 +85,82 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="h-screen w-screen bg-slate-100 flex overflow-hidden">
+    <div 
+      className="h-screen w-screen flex overflow-hidden text-white"
+      style={{ background: 'linear-gradient(135deg, #0d0b21 0%, #161338 50%, #1e1b4b 100%)' }}
+    >
       {/* Admin Sidebar */}
-      <aside className="w-64 bg-white flex flex-col h-full relative border-r border-slate-200">
-        <div className="p-6 flex items-center shrink-0 border-b border-slate-100">
-          <Link href="/admin/services" className="flex items-center gap-2">
-            <div className="bg-emerald-600 p-1.5 rounded-lg">
-              <Settings className="w-5 h-5 text-white" />
+      <aside className="w-64 bg-[#13112c]/95 backdrop-blur-md flex flex-col h-full relative border-r border-indigo-500/20">
+        <div className="p-6 flex items-center shrink-0 border-b border-indigo-500/20">
+          <Link href="/admin/services" className="flex items-center gap-2.5">
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2 rounded-xl shadow-lg shadow-emerald-500/20 border border-emerald-400/30">
+              <Settings className="w-5 h-5 text-slate-950" />
             </div>
-            <span className="font-bold text-xl text-slate-900 tracking-tight">Admin<span className="text-emerald-600">Panel</span></span>
+            <span className="font-extrabold text-xl text-white tracking-tight">Admin<span className="text-emerald-400">Panel</span></span>
           </Link>
         </div>
         
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          <Link href="/admin/services" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 transition-colors font-medium">
+        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1.5">
+          <Link 
+            href="/admin/services" 
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all font-semibold ${
+              pathname === '/admin/services' 
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-emerald-500/25' 
+                : 'text-indigo-100/85 hover:bg-indigo-500/15 hover:text-white'
+            }`}
+          >
             <LayoutDashboard className="w-5 h-5" />
             Manage Services
           </Link>
-          <Link href="/admin/applications" className="flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 transition-colors font-medium">
+
+          <Link 
+            href="/admin/applications" 
+            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-semibold ${
+              pathname.startsWith('/admin/applications') 
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-emerald-500/25' 
+                : 'text-indigo-100/85 hover:bg-indigo-500/15 hover:text-white'
+            }`}
+          >
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5" />
               Applications
             </div>
             {pendingCount > 0 && (
-              <span className="bg-amber-100 text-amber-700 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full animate-pulse">
+              <span className={`text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full ${
+                pathname.startsWith('/admin/applications')
+                  ? 'bg-slate-950/40 text-slate-950 border border-slate-950/20'
+                  : 'bg-amber-500/20 text-amber-300 border border-amber-400/40 animate-pulse'
+              }`}>
                 {pendingCount} New
               </span>
             )}
           </Link>
+
+          <Link 
+            href="/admin/users" 
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all font-semibold ${
+              pathname.startsWith('/admin/users') 
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold shadow-lg shadow-emerald-500/25' 
+                : 'text-indigo-100/85 hover:bg-indigo-500/15 hover:text-white'
+            }`}
+          >
+            <Users className="w-5 h-5" />
+            Users
+          </Link>
         </div>
 
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-indigo-500/20">
           <button 
             onClick={async () => {
               await supabase.auth.signOut()
               router.push('/admin/login')
             }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors font-medium mb-2"
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors font-semibold mb-2"
           >
             <LogOut className="w-5 h-5" />
             Sign Out
           </button>
-          <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors font-medium">
+          <Link href="/dashboard" className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-indigo-200/70 hover:text-white hover:bg-indigo-500/15 transition-colors font-semibold">
             <ArrowLeft className="w-5 h-5" />
             Back to App
           </Link>
@@ -129,8 +168,8 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 bg-slate-100 relative overflow-hidden shadow-inner">
-        <main className="flex-1 overflow-auto relative p-6 lg:p-10">
+      <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
+        <main className="flex-1 overflow-auto relative p-6 lg:p-10 text-white">
           {children}
         </main>
       </div>

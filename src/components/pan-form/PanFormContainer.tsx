@@ -16,7 +16,7 @@ import { PanPdfEngine } from "@/lib/pdf/engine";
 import { NEW_PAN_CONFIG } from "@/lib/pdf/config/new-pan";
 import { createClient } from "@/lib/supabase/client";
 import { deductWalletBalance } from "@/lib/actions/wallet";
-import { emitWalletUpdate } from "@/lib/realtime";
+import { emitWalletUpdate, subscribeToWallet } from "@/lib/realtime";
 
 // --- REUSABLE COLLAPSIBLE STEP COMPONENT ---
 interface CollapsibleStepProps {
@@ -55,9 +55,8 @@ function CollapsibleStep({
     <div
       ref={stepRef}
       className={cn(
-        "bg-white border transition-all duration-300 rounded-xl overflow-hidden",
-        isOpen ? "border-emerald-200 ring-4 ring-emerald-500/10 shadow-md" : "border-gray-200 shadow-sm",
-        isCompleted && !isOpen ? "bg-white" : ""
+        "bg-[#161338]/95 border transition-all duration-300 rounded-2xl overflow-hidden shadow-xl",
+        isOpen ? "border-emerald-400/40 ring-4 ring-emerald-500/10 shadow-emerald-500/10" : "border-indigo-400/25 hover:border-indigo-400/40"
       )}
     >
       {/* Header */}
@@ -65,27 +64,24 @@ function CollapsibleStep({
         onClick={onToggle}
         className={cn(
           "flex items-center justify-between p-5 cursor-pointer transition-colors",
-          isOpen ? "bg-emerald-50 text-emerald-700" : "bg-white hover:bg-gray-50"
+          isOpen ? "bg-emerald-500/15 border-b border-emerald-400/30 text-white font-bold" : "bg-[#1f1b4b] border-b border-indigo-400/20 text-white hover:bg-[#25205a]"
         )}
       >
         <div className="flex items-center gap-4">
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
-            isCompleted ? "bg-emerald-500 text-white" :
-              isOpen ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-500"
+            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold transition-all",
+            isCompleted ? "bg-emerald-500 text-slate-950" :
+              isOpen ? "bg-emerald-500 text-slate-950" : "bg-[#0f0d26] text-indigo-300 border border-indigo-400/30"
           )}>
-            {isCompleted ? <Check className="w-4 h-4" /> : stepIndex}
+            {isCompleted ? <Check className="w-4 h-4 stroke-[3]" /> : stepIndex}
           </div>
-          <span className={cn(
-            "text-sm font-semibold tracking-tight transition-colors",
-            isOpen ? "text-emerald-700" : "text-gray-700"
-          )}>
+          <span className="text-sm font-bold tracking-tight text-white">
             {title}
           </span>
         </div>
         <ChevronDown className={cn(
           "w-5 h-5 transition-transform duration-300",
-          isOpen ? "rotate-180 text-emerald-700" : "text-gray-400"
+          isOpen ? "rotate-180 text-emerald-400" : "text-indigo-300"
         )} />
       </div>
 
@@ -95,8 +91,8 @@ function CollapsibleStep({
         isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
       )}>
         <div className="overflow-hidden">
-          <div className="p-6 pt-6 border-t border-gray-100">
-            <div className="space-y-6">
+          <div className="p-6 pt-6 border-t border-indigo-400/20 bg-[#161338]">
+            <div className="space-y-6 text-white">
               {children}
             </div>
             <div className="mt-8 flex justify-end">
@@ -111,10 +107,10 @@ function CollapsibleStep({
                   }}
                   disabled={!isValid}
                   className={cn(
-                    "rounded-xl px-8 py-2.5 text-sm font-semibold shadow-sm transition-all active:scale-95",
+                    "rounded-xl px-8 py-2.5 text-sm font-extrabold shadow-lg transition-all active:scale-95 cursor-pointer",
                     isValid
-                      ? "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
-                      : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-emerald-500/25"
+                      : "bg-[#0f0d26] text-indigo-300/40 cursor-not-allowed border border-indigo-500/20"
                   )}
                 >
                   Continue
@@ -160,32 +156,51 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
 
   // Fetch dynamic PAN services fee & user's current wallet balance
   useEffect(() => {
+    let unsubscribeWallet: (() => void) | null = null;
+
     async function loadPriceAndWallet() {
       try {
         const supabase = createClient();
-        const { data: serviceData } = await supabase
+        const { data: allSrv } = await supabase
           .from('services')
-          .select('price')
-          .ilike('title', '%pan services%')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .select('price, title, form_schema');
+
+        const serviceData = allSrv?.find((s: any) => 
+          s.form_schema?.[0]?.core_tool === 'pan_services' || 
+          s.title?.toLowerCase().trim() === 'pan services' || 
+          s.title?.toLowerCase().trim() === 'pan form generator' ||
+          (s.title?.toLowerCase().includes('pan') && s.price < 100)
+        );
 
         if (serviceData?.price != null) {
           setPanPrice(Number(serviceData.price));
+        } else {
+          setPanPrice(2);
         }
 
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data: walletData } = await supabase
-            .from('wallet')
-            .select('balance')
-            .eq('user_id', user.id)
-            .maybeSingle();
+          const fetchBalance = async () => {
+            const { data: walletData } = await supabase
+              .from('wallet')
+              .select('balance')
+              .eq('user_id', user.id)
+              .maybeSingle();
 
-          if (walletData?.balance != null) {
-            setWalletBalance(Number(walletData.balance));
-          }
+            if (walletData?.balance != null) {
+              setWalletBalance(Number(walletData.balance));
+            }
+          };
+
+          await fetchBalance();
+
+          unsubscribeWallet = subscribeToWallet(user.id, (newBalance) => {
+            if (newBalance !== undefined && newBalance !== null) {
+              setWalletBalance(Number(newBalance));
+            } else {
+              fetchBalance();
+            }
+          });
         }
       } catch (err) {
         console.error("Failed to load PAN pricing or wallet balance:", err);
@@ -193,6 +208,10 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
     }
 
     loadPriceAndWallet();
+
+    return () => {
+      if (unsubscribeWallet) unsubscribeWallet();
+    };
   }, []);
 
   // Scroll Lock Effect
@@ -383,7 +402,7 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
 
   return (
     <div className={cn(
-      "w-full flex flex-col lg:flex-row gap-6 items-start bg-gray-50",
+      "w-full flex flex-col lg:flex-row gap-6 items-start bg-transparent text-white",
       noPadding ? "" : "pt-2 px-4 lg:px-6"
     )}>
       {/* Form Section - Center (65%) */}
@@ -393,18 +412,18 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
       >
         <div className="flex flex-col gap-4">
           {/* Top Info Banner with Dynamic Fee and Wallet Balance */}
-          <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-[#161338]/95 border border-indigo-400/25 rounded-2xl p-5 shadow-xl flex flex-wrap items-center justify-between gap-4 text-white">
             <div>
-              <h2 className="text-base font-bold text-gray-900">New PAN Application (Form 49A)</h2>
-              <p className="text-xs text-gray-500">Fill in all steps. The official PDF will be generated upon confirmation.</p>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">New PAN Application (Form 49A)</h2>
+              <p className="text-xs sm:text-sm text-indigo-200/80 mt-1">Fill in all steps. The official PDF will be generated upon confirmation.</p>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-xs font-bold shadow-xs">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 <span>Service Fee: ₹{panPrice}</span>
               </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 text-xs font-medium">
-                <Wallet className="w-3.5 h-3.5 text-gray-500" />
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-xs font-bold shadow-xs">
+                <Wallet className="w-4 h-4 text-emerald-400" />
                 <span>Wallet: ₹{walletBalance != null ? walletBalance.toFixed(2) : '...'}</span>
               </div>
             </div>
@@ -482,20 +501,20 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
                 type="submit"
                 disabled={isGenerating}
                 className={cn(
-                  "w-full lg:w-auto flex items-center justify-center gap-2 text-white h-[48px] px-8 rounded-xl font-semibold transition-all active:scale-95 shadow-sm text-sm",
+                  "w-full lg:w-auto flex items-center justify-center gap-2 text-slate-950 h-[48px] px-8 rounded-xl font-extrabold transition-all active:scale-95 shadow-lg text-sm",
                   !isGenerating
-                    ? "bg-emerald-600 hover:bg-emerald-700 cursor-pointer"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/25 cursor-pointer"
+                    : "bg-[#0f0d26] text-indigo-300/40 border border-indigo-400/20 cursor-not-allowed"
                 )}
               >
                 {isGenerating ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
                     <span>Deducting ₹{panPrice} & Generating PDF...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4" />
+                    <Sparkles className="w-4 h-4 fill-slate-950 text-slate-950" />
                     <span>Pay ₹{panPrice} & Generate PDF</span>
                   </>
                 )}
@@ -512,13 +531,13 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[150] bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center"
+                className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center"
               >
-                <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200 flex flex-col items-center gap-6 animate-in zoom-in-95 duration-500">
-                  <Loader2 className="w-12 h-12 text-emerald-600 animate-spin" />
+                <div className="bg-[#181537] p-8 rounded-2xl shadow-2xl border border-indigo-400/30 flex flex-col items-center gap-6 animate-in zoom-in-95 duration-500 text-white">
+                  <Loader2 className="w-12 h-12 text-emerald-400 animate-spin" />
                   <div className="space-y-1 text-center">
-                    <p className="text-lg font-bold text-gray-900 tracking-tight">Processing Payment & PDF</p>
-                    <p className="text-sm font-medium text-gray-500">Deducting ₹{panPrice} from CSCCopy Wallet...</p>
+                    <p className="text-lg font-bold text-white tracking-tight">Processing Payment & PDF</p>
+                    <p className="text-sm font-medium text-indigo-200">Deducting ₹{panPrice} from CSCCopy Wallet...</p>
                   </div>
                 </div>
               </motion.div>
@@ -533,44 +552,44 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+                  className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                   onClick={() => setShowInsufficientModal(false)}
                 />
                 <motion.div
                   initial={{ scale: 0.95, opacity: 0, y: 10 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                  className="relative w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl border border-gray-200 p-6 text-center"
+                  className="relative w-full max-w-md bg-[#181537] rounded-2xl overflow-hidden shadow-2xl border border-indigo-400/30 p-6 text-center text-white"
                 >
                   <button
                     type="button"
                     onClick={() => setShowInsufficientModal(false)}
-                    className="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all cursor-pointer"
+                    className="absolute top-4 right-4 p-2 rounded-full text-indigo-300 hover:bg-[#0f0d26] hover:text-white transition-all cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
 
-                  <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <div className="w-16 h-16 bg-rose-500/20 text-rose-400 border border-rose-500/40 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                     <AlertCircle className="w-8 h-8" />
                   </div>
 
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Insufficient Wallet Balance</h3>
-                  <p className="text-sm text-gray-600 mb-5 leading-relaxed">
+                  <h3 className="text-xl font-bold text-white mb-2">Insufficient Wallet Balance</h3>
+                  <p className="text-sm text-indigo-200 mb-5 leading-relaxed">
                     {insufficientMessage || `You need ₹${panPrice} to generate and download this PAN application. Your current balance is ₹${walletBalance?.toFixed(2) || '0.00'}.`}
                   </p>
 
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5 mb-6 text-left space-y-2 text-xs">
-                    <div className="flex justify-between text-gray-600">
+                  <div className="bg-[#0f0d26] border border-indigo-400/25 rounded-xl p-3.5 mb-6 text-left space-y-2 text-xs">
+                    <div className="flex justify-between text-indigo-200">
                       <span>Service Fee:</span>
-                      <span className="font-semibold text-gray-900">₹{panPrice.toFixed(2)}</span>
+                      <span className="font-semibold text-white">₹{panPrice.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-gray-600">
+                    <div className="flex justify-between text-indigo-200">
                       <span>Current Balance:</span>
-                      <span className="font-semibold text-red-600">₹{(walletBalance || 0).toFixed(2)}</span>
+                      <span className="font-semibold text-rose-400">₹{(walletBalance || 0).toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-gray-600 border-t border-gray-200 pt-2 font-medium">
+                    <div className="flex justify-between text-indigo-200 border-t border-indigo-500/20 pt-2 font-medium">
                       <span>Amount Needed:</span>
-                      <span className="font-bold text-red-600">₹{Math.max(0, panPrice - (walletBalance || 0)).toFixed(2)}</span>
+                      <span className="font-bold text-rose-400">₹{Math.max(0, panPrice - (walletBalance || 0)).toFixed(2)}</span>
                     </div>
                   </div>
 
@@ -579,7 +598,7 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
                       href="/dashboard/wallet"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 text-white h-[46px] rounded-xl font-semibold transition-all bg-emerald-600 hover:bg-emerald-700 shadow-sm"
+                      className="flex items-center justify-center gap-2 text-slate-950 h-[46px] rounded-xl font-extrabold transition-all bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-md shadow-emerald-500/25"
                     >
                       <Wallet className="w-4 h-4" />
                       Recharge Wallet Now
@@ -587,7 +606,7 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
                     <button
                       type="button"
                       onClick={() => setShowInsufficientModal(false)}
-                      className="h-[42px] rounded-xl font-semibold text-sm text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+                      className="h-[42px] rounded-xl font-semibold text-sm text-indigo-300 hover:text-white transition-all cursor-pointer"
                     >
                       Close & Review Form
                     </button>
@@ -605,34 +624,34 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+                  className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                   onClick={() => setShowSuccessModal(false)}
                 />
                 <motion.div
                   initial={{ scale: 0.95, opacity: 0, y: 10 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                  className="relative w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-xl border border-gray-200 p-8 text-center"
+                  className="relative w-full max-w-md bg-[#181537] rounded-2xl overflow-hidden shadow-2xl border border-indigo-400/30 p-8 text-center text-white"
                 >
                   <button
                     type="button"
                     onClick={handleFinalReset}
-                    className="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all cursor-pointer"
+                    className="absolute top-4 right-4 p-2 rounded-full text-indigo-300 hover:bg-[#0f0d26] hover:text-white transition-all cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
 
-                  <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                    <Check className="w-8 h-8" />
+                  <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 border border-emerald-400/40 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                    <Check className="w-8 h-8 stroke-[3]" />
                   </div>
 
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Application Generated Successfully</h2>
-                  <p className="text-gray-500 mb-2 text-sm">
+                  <h2 className="text-xl font-bold text-white mb-2">Application Generated Successfully</h2>
+                  <p className="text-indigo-200 mb-2 text-sm">
                     ₹{panPrice} was successfully deducted from your wallet. Your official PDF is ready.
                   </p>
                   {walletBalance != null && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-xs font-semibold text-gray-600 mb-6">
-                      <Wallet className="w-3.5 h-3.5 text-gray-500" />
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0f0d26] text-xs font-semibold text-emerald-300 border border-indigo-400/25 mb-6">
+                      <Wallet className="w-3.5 h-3.5 text-emerald-400" />
                       <span>Remaining Balance: ₹{walletBalance.toFixed(2)}</span>
                     </div>
                   )}
@@ -641,7 +660,7 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
                     <button
                       type="button"
                       onClick={handleDownload}
-                      className="flex items-center justify-center gap-2 text-white h-[48px] rounded-xl font-semibold transition-all bg-emerald-600 hover:bg-emerald-700 shadow-sm cursor-pointer"
+                      className="flex items-center justify-center gap-2 text-slate-950 h-[48px] rounded-xl font-extrabold transition-all bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-md shadow-emerald-500/25 cursor-pointer"
                     >
                       <Download className="w-4 h-4" />
                       Download PDF
@@ -649,7 +668,7 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
                     <button
                       type="button"
                       onClick={handlePrint}
-                      className="flex items-center justify-center gap-2 text-gray-700 h-[48px] rounded-xl font-semibold transition-all bg-white border border-gray-200 hover:bg-gray-50 shadow-sm cursor-pointer"
+                      className="flex items-center justify-center gap-2 text-white h-[48px] rounded-xl font-bold transition-all bg-[#0f0d26] border border-indigo-400/30 hover:bg-[#13112c] shadow-sm cursor-pointer"
                     >
                       <Printer className="w-4 h-4" />
                       Print PDF
@@ -659,7 +678,7 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
                   <button
                     type="button"
                     onClick={handleFinalReset}
-                    className="text-sm text-gray-500 font-medium hover:text-gray-700 cursor-pointer"
+                    className="text-sm text-indigo-300 font-medium hover:text-white cursor-pointer"
                   >
                     Start New Application
                   </button>
@@ -672,15 +691,15 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
 
       {/* Live Preview Section - Right (35%) */}
       <div className="w-full lg:w-[380px] lg:sticky lg:top-8 h-[525px] max-h-[90vh]">
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm relative overflow-hidden flex flex-col h-full">
+        <div className="bg-[#13112c] border border-indigo-400/25 rounded-2xl p-4 shadow-xl relative overflow-hidden flex flex-col h-full text-white">
           <div className="flex items-center gap-2 mb-3 px-2">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Live Preview</span>
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+            <span className="text-xs font-bold text-indigo-200 uppercase tracking-wide">Live Preview</span>
           </div>
 
-          <div className="flex-1 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 relative shadow-inner flex flex-col items-center justify-center">
+          <div className="flex-1 bg-slate-900/80 rounded-xl overflow-hidden border border-indigo-400/20 relative shadow-inner flex flex-col items-center justify-center">
             {previewUrl ? (
-              <div className="w-full h-full flex items-center justify-center">
+              <div className="w-full h-full flex items-center justify-center bg-white">
                 <iframe
                   src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
                   className="w-full h-full rounded-lg"
@@ -689,17 +708,17 @@ export function PanFormContainer({ noPadding = false, initialProfile }: { noPadd
               </div>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-3 border border-gray-200">
-                  <FileText className="w-6 h-6 text-gray-400" />
+                <div className="w-12 h-12 bg-[#1b183d] rounded-xl shadow-sm flex items-center justify-center mb-3 border border-indigo-400/30">
+                  <FileText className="w-6 h-6 text-indigo-300" />
                 </div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Form Matrix</p>
-                <p className="text-[10px] text-gray-400 px-2">Waiting for sufficient input to generate the preview.</p>
+                <p className="text-xs font-bold text-white uppercase tracking-wide mb-1">Form Matrix</p>
+                <p className="text-[11px] text-indigo-200/70 px-2">Waiting for sufficient input to generate the preview.</p>
               </div>
             )}
 
             {previewLoading && (
-              <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center z-10">
-                <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
+              <div className="absolute inset-0 bg-[#0d0b21]/70 backdrop-blur-[2px] flex items-center justify-center z-10">
+                <Loader2 className="w-6 h-6 text-emerald-400 animate-spin" />
               </div>
             )}
           </div>

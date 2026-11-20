@@ -16,8 +16,8 @@ export function AddressInput({ type, register, errors, title }: AddressInputProp
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-6">
-        <span className="w-1.5 h-1.5 bg-primary/40 rounded-full" />
-        <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">
+        <span className="w-2 h-2 bg-emerald-400 rounded-full" />
+        <h3 className="text-sm font-black text-indigo-200 uppercase tracking-widest">
           {title}
         </h3>
       </div>

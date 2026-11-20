@@ -98,21 +98,21 @@ export default function DashboardHelpPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         
         {/* WhatsApp Card */}
-        <div className="bg-white rounded-2xl border border-emerald-100 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+        <div className="bg-[#1b183d]/90 rounded-2xl border border-indigo-400/25 p-6 shadow-xl flex flex-col justify-between text-white">
           <div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-sm mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-400 flex items-center justify-center shadow-sm mb-4">
               <MessageSquare className="w-6 h-6" />
             </div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-slate-900 text-lg">WhatsApp Support</h3>
-              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Fastest</span>
+              <h3 className="font-bold text-white text-lg">WhatsApp Support</h3>
+              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full">Fastest</span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-indigo-200/80 mt-1">
               Direct chat assistance for instant wallet recharges and tool queries.
             </p>
-            <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <p className="text-xs text-slate-400 font-medium">WhatsApp Number</p>
-              <p className="text-base font-extrabold text-slate-900">+91 8169431433</p>
+            <div className="mt-4 p-3 bg-[#0f0d26] rounded-xl border border-indigo-400/20">
+              <p className="text-xs text-indigo-300/70 font-medium">WhatsApp Number</p>
+              <p className="text-base font-extrabold text-emerald-300">+91 8169431433</p>
             </div>
           </div>
 
@@ -120,7 +120,7 @@ export default function DashboardHelpPage() {
             href="https://wa.me/918169431433?text=Hello%20CSCCopy%20Support,%20I%20need%20assistance"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-5 w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-sm transition-colors"
+            className="mt-5 w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-sm shadow-md transition-all cursor-pointer"
           >
             <MessageSquare className="w-4 h-4" />
             Chat on WhatsApp
@@ -128,27 +128,27 @@ export default function DashboardHelpPage() {
         </div>
 
         {/* Email Support Card */}
-        <div className="bg-white rounded-2xl border border-blue-100 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+        <div className="bg-[#1b183d]/90 rounded-2xl border border-indigo-400/25 p-6 shadow-xl flex flex-col justify-between text-white">
           <div>
-            <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-sm mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 text-blue-400 flex items-center justify-center shadow-sm mb-4">
               <Mail className="w-6 h-6" />
             </div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-slate-900 text-lg">Email Desk</h3>
-              <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Official</span>
+              <h3 className="font-bold text-white text-lg">Email Desk</h3>
+              <span className="bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full">Official</span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-indigo-200/80 mt-1">
               Official email support for billing, account disputes, and inquiries.
             </p>
-            <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <p className="text-xs text-slate-400 font-medium">Support Email</p>
-              <p className="text-sm sm:text-base font-extrabold text-slate-900 break-all">ranjit@csccopy.online</p>
+            <div className="mt-4 p-3 bg-[#0f0d26] rounded-xl border border-indigo-400/20">
+              <p className="text-xs text-indigo-300/70 font-medium">Support Email</p>
+              <p className="text-sm sm:text-base font-extrabold text-white break-all">ranjit@csccopy.online</p>
             </div>
           </div>
 
           <a
             href="mailto:ranjit@csccopy.online"
-            className="mt-5 w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm transition-colors"
+            className="mt-5 w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-md transition-all cursor-pointer"
           >
             <Mail className="w-4 h-4" />
             Send Email
@@ -156,23 +156,23 @@ export default function DashboardHelpPage() {
         </div>
 
         {/* Office & Operating Hours Card */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between md:col-span-2 lg:col-span-1">
+        <div className="bg-[#1b183d]/90 rounded-2xl border border-indigo-400/25 p-6 shadow-xl flex flex-col justify-between text-white md:col-span-2 lg:col-span-1">
           <div>
-            <div className="w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center shadow-sm mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-400/30 text-purple-300 flex items-center justify-center shadow-sm mb-4">
               <MapPin className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-slate-900 text-lg">Registered Office</h3>
-            <p className="text-xs text-emerald-700 font-bold mt-0.5">Aryan Enterprises</p>
+            <h3 className="font-bold text-white text-lg">Registered Office</h3>
+            <p className="text-xs text-emerald-400 font-bold mt-0.5">Aryan Enterprises</p>
             
-            <p className="text-xs text-slate-600 mt-2.5 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <p className="text-xs text-indigo-200/90 mt-2.5 leading-relaxed bg-[#0f0d26] p-3 rounded-xl border border-indigo-400/20">
               Suresh Nagar, near Railway station middle bridge, Diva east, Thane, Maharashtra - 400612, India.
             </p>
 
-            <div className="mt-3 flex items-start gap-2 text-xs text-slate-500">
-              <Clock className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+            <div className="mt-3 flex items-start gap-2 text-xs text-indigo-300">
+              <Clock className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-slate-700">Mon – Sat: 9:00 AM – 8:00 PM IST</p>
-                <p className="text-[11px] text-slate-400">Sunday: WhatsApp Support Only</p>
+                <p className="font-semibold text-white">Mon – Sat: 9:00 AM – 8:00 PM IST</p>
+                <p className="text-[11px] text-indigo-300/70">Sunday: WhatsApp Support Only</p>
               </div>
             </div>
           </div>
@@ -181,9 +181,9 @@ export default function DashboardHelpPage() {
             href="https://maps.google.com/?q=Diva+Railway+Station+East+Thane"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-5 w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition-colors"
+            className="mt-5 w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-indigo-950/80 border border-indigo-400/30 hover:border-emerald-400 text-indigo-100 font-bold text-sm transition-all cursor-pointer"
           >
-            <MapPin className="w-4 h-4 text-slate-600" />
+            <MapPin className="w-4 h-4 text-indigo-300" />
             View Location
           </a>
         </div>
@@ -194,17 +194,17 @@ export default function DashboardHelpPage() {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
               Legal Policies & Compliance
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-indigo-200/80 mt-0.5">
               Official legal policies and terms required under Indian payment gateway compliance regulations.
             </p>
           </div>
           <Link
             href="/contact"
-            className="text-xs font-bold text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-1 self-start sm:self-auto"
+            className="text-xs font-bold text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 self-start sm:self-auto"
           >
             Public Contact Page <ChevronRight className="w-3.5 h-3.5" />
           </Link>
@@ -217,20 +217,20 @@ export default function DashboardHelpPage() {
               <Link
                 key={doc.title}
                 href={doc.href}
-                className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-emerald-300 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between group"
+                className="bg-[#1b183d]/90 p-5 rounded-2xl border border-indigo-400/25 hover:border-emerald-400/50 shadow-lg hover:-translate-y-0.5 transition-all flex flex-col justify-between group text-white"
               >
                 <div>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border mb-3 ${doc.color}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border mb-3 bg-[#13112c] border-indigo-400/30 text-emerald-400`}>
                     <Icon className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">
+                  <h3 className="font-bold text-white text-sm group-hover:text-emerald-300 transition-colors">
                     {doc.title}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  <p className="text-xs text-indigo-200/70 mt-1 leading-relaxed">
                     {doc.desc}
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-600">
+                <div className="mt-4 pt-3 border-t border-indigo-500/20 flex items-center justify-between text-xs font-bold text-emerald-400">
                   <span>View Document</span>
                   <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </div>
@@ -241,24 +241,24 @@ export default function DashboardHelpPage() {
       </div>
 
       {/* Frequently Asked Questions */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
-        <div className="flex items-center gap-2 pb-4 border-b border-slate-100">
-          <HelpCircle className="w-5 h-5 text-emerald-600" />
-          <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+      <div className="bg-[#1b183d]/90 rounded-3xl border border-indigo-400/25 p-6 sm:p-8 shadow-xl space-y-6 text-white">
+        <div className="flex items-center gap-2 pb-4 border-b border-indigo-500/20">
+          <HelpCircle className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-lg sm:text-xl font-bold text-white">
             Frequently Asked Questions
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {faqs.map((faq, index) => (
-            <div key={index} className="p-4 rounded-2xl bg-slate-50/70 border border-slate-100 space-y-2">
+            <div key={index} className="p-4 rounded-2xl bg-[#13112c]/90 border border-indigo-400/20 space-y-2">
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <h4 className="font-bold text-slate-900 text-sm leading-snug">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <h4 className="font-bold text-white text-sm leading-snug">
                   {faq.q}
                 </h4>
               </div>
-              <p className="text-xs text-slate-600 pl-6 leading-relaxed">
+              <p className="text-xs text-indigo-200/80 pl-6 leading-relaxed">
                 {faq.a}
               </p>
             </div>

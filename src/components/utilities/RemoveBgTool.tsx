@@ -127,7 +127,7 @@ export function RemoveBgTool() {
               handleFileSelect(e.dataTransfer.files[0])
             }
           }}
-          className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/20 hover:bg-emerald-50/50 rounded-3xl flex flex-col items-center justify-center p-12 transition-all duration-300 cursor-pointer group shadow-sm text-center"
+          className="bg-[#13112c]/80 border-2 border-dashed border-indigo-400/40 hover:border-emerald-400 rounded-2xl flex flex-col items-center justify-center p-12 transition-all duration-300 cursor-pointer group shadow-sm text-center text-indigo-100"
         >
           <input
             ref={fileInputRef}
@@ -140,23 +140,23 @@ export function RemoveBgTool() {
               }
             }}
           />
-          <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Sparkles className="h-8 w-8" />
           </div>
-          <p className="text-base font-bold text-gray-800 group-hover:text-emerald-700">
+          <p className="text-base font-bold text-white group-hover:text-emerald-300">
             Click to upload or drag & drop image
           </p>
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-xs text-indigo-200/80 mt-2">
             100% Free AI Background Removal • High Quality Transparent PNG • Works completely in your browser
           </p>
         </div>
       ) : (
         <div className="space-y-6">
           {/* Header Action Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-gray-100">
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-indigo-500/20">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-gray-800">{file.name}</span>
-              <span className="text-xs text-gray-400">({(file.size / 1024).toFixed(0)} KB)</span>
+              <span className="text-sm font-bold text-white">{file.name}</span>
+              <span className="text-xs text-indigo-300">({(file.size / 1024).toFixed(0)} KB)</span>
             </div>
 
             <button
@@ -167,7 +167,7 @@ export function RemoveBgTool() {
                 setRemovedBlob(null)
                 setRemovedUrl(null)
               }}
-              className="text-xs font-semibold text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+              className="text-xs font-semibold text-indigo-300 hover:text-rose-400 transition-colors cursor-pointer"
             >
               Upload Different Image
             </button>
@@ -175,10 +175,10 @@ export function RemoveBgTool() {
 
           {/* Processing Indicator */}
           {isProcessing && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 text-center space-y-3">
-              <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
-              <p className="font-bold text-emerald-900 text-sm">{progressMsg || 'Removing Background...'}</p>
-              <p className="text-xs text-emerald-600">This happens 100% locally on your device with AI.</p>
+            <div className="bg-emerald-500/10 border border-emerald-400/30 rounded-2xl p-6 text-center space-y-3">
+              <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mx-auto" />
+              <p className="font-bold text-emerald-300 text-sm">{progressMsg || 'Removing Background...'}</p>
+              <p className="text-xs text-emerald-400/80">This happens 100% locally on your device with AI.</p>
             </div>
           )}
 
@@ -186,10 +186,10 @@ export function RemoveBgTool() {
           {removedUrl && !isProcessing && (
             <div className="space-y-6">
               {/* Background Selector Palette */}
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="bg-[#0f0d26] border border-indigo-400/30 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-emerald-600" />
-                  <span className="text-xs font-bold text-gray-700">Replace Background:</span>
+                  <Palette className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs font-bold text-indigo-200">Replace Background:</span>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -200,8 +200,8 @@ export function RemoveBgTool() {
                       onClick={() => setActiveBg(b.color)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         activeBg === b.color
-                          ? 'border-emerald-600 bg-white shadow-xs text-emerald-800'
-                          : 'border-gray-200 bg-white/70 hover:bg-white text-gray-600'
+                          ? 'border-emerald-400 bg-emerald-500/20 shadow-xs text-emerald-300'
+                          : 'border-indigo-400/20 bg-[#1b183d] hover:border-emerald-400/40 text-indigo-200 hover:text-white'
                       }`}
                     >
                       <span

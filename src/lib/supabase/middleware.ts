@@ -41,8 +41,8 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  // 1. If user is already logged in and visits login/home page ('/'):
-  if (user && pathname === '/') {
+  // 1. If user is already logged in and visits login/home page ('/' or '/login'):
+  if (user && (pathname === '/' || pathname === '/login')) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)

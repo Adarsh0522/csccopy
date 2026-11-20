@@ -55,15 +55,15 @@ export function AddressStep({ register, errors, control }: StepProps) {
       {/* Representative Section */}
       {addressType === "REPRESENTATIVE" && (
         <div className="space-y-8">
-          <div className="space-y-6 bg-gray-50 border border-dashed border-gray-200 p-6 rounded-xl">
+          <div className="space-y-6 bg-[#0f0d26] border border-dashed border-indigo-400/30 p-6 rounded-2xl">
             <div className="flex items-center gap-3">
               <input
                 type="checkbox"
                 id="raSameAsResidence"
-                className="w-5 h-5 rounded-[6px] border-gray-300 text-[#2563EB] focus:ring-[#2563EB] transition-all cursor-pointer"
+                className="w-5 h-5 rounded-[6px] border-indigo-400/30 text-emerald-500 accent-emerald-500 focus:ring-emerald-500/20 transition-all cursor-pointer"
                 {...register("raSameAsResidence")}
               />
-              <label htmlFor="raSameAsResidence" className="text-sm font-bold text-gray-700 cursor-pointer select-none">
+              <label htmlFor="raSameAsResidence" className="text-sm font-bold text-indigo-200 cursor-pointer select-none">
                 Same as Representative Assessee Address
               </label>
             </div>
@@ -85,4 +85,3 @@ export function AddressStep({ register, errors, control }: StepProps) {
 
   );
 }
-

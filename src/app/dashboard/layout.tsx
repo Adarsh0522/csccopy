@@ -1,5 +1,6 @@
 import { Navbar } from './Navbar'
 import { Sidebar } from './Sidebar'
+import { SearchProvider } from './SearchContext'
 
 export default function DashboardLayout({
   children,
@@ -7,16 +8,19 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <>
-      <div className="h-screen w-screen bg-slate-100 flex overflow-hidden">
+    <SearchProvider>
+      <div 
+        className="h-screen w-screen flex overflow-hidden text-white"
+        style={{ background: 'linear-gradient(135deg, #0d0b21 0%, #161338 50%, #1e1b4b 100%)' }}
+      >
         <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0 bg-slate-100 border-l border-gray-200 relative overflow-hidden shadow-inner">
+        <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden bg-transparent">
           <Navbar />
-          <main className="flex-1 overflow-auto relative p-6 lg:p-10">
+          <main className="flex-1 overflow-auto relative p-6 lg:p-8 bg-transparent">
             {children}
           </main>
         </div>
       </div>
-    </>
+    </SearchProvider>
   )
 }

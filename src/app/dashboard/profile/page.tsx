@@ -150,21 +150,21 @@ function ProfileContent() {
   const isIncomplete = !profile.fullName || !profile.businessName
 
   return (
-    <div className="min-h-[calc(100vh-73px)] bg-gray-100 p-6 lg:p-8">
+    <div className="min-h-[calc(100vh-73px)] text-white p-6 lg:p-8">
       <div className="max-w-3xl mx-auto space-y-8">
         
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">My Profile</h1>
-          <p className="text-gray-500 font-medium">Manage your account settings, operator details, and business information.</p>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">My Profile</h1>
+          <p className="text-indigo-200/80 font-medium">Manage your account settings, operator details, and business information.</p>
         </div>
 
         {/* Incomplete Profile Alert Banner */}
         {isIncomplete && !loading && (
-          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-5 flex items-start gap-4 text-amber-900 shadow-sm">
-            <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="bg-amber-950/40 border border-amber-500/40 rounded-2xl p-5 flex items-start gap-4 text-amber-200 shadow-lg">
+            <AlertCircle className="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-bold text-base">Complete Your Profile</h3>
-              <p className="text-sm text-amber-800 mt-1">
+              <h3 className="font-bold text-base text-white">Complete Your Profile</h3>
+              <p className="text-sm text-amber-200/90 mt-1">
                 Your full name and business name are required. Please fill in the details below and click <strong>"Save Profile"</strong>.
               </p>
             </div>
@@ -173,51 +173,51 @@ function ProfileContent() {
 
         {/* Success / Error Messages */}
         {success && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-3 text-emerald-800 shadow-sm font-medium text-sm">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+          <div className="bg-emerald-500/10 border border-emerald-400/30 rounded-2xl p-4 flex items-center gap-3 text-emerald-300 shadow-md font-medium text-sm">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <span>{success}</span>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3 text-red-700 shadow-sm font-medium text-sm">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+          <div className="bg-rose-950/40 border border-rose-500/40 rounded-2xl p-4 flex items-center gap-3 text-rose-300 shadow-md font-medium text-sm">
+            <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {/* Top Header Card */}
-        <Card className="border-gray-200 shadow-sm bg-white ring-1 ring-gray-900/5 overflow-hidden">
-          <div className="h-32 bg-gradient-to-r from-emerald-600 to-teal-700"></div>
+        <Card className="border border-indigo-400/25 shadow-xl bg-[#1b183d]/90 text-white rounded-3xl overflow-hidden">
+          <div className="h-32 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700"></div>
           <CardContent className="relative px-8 pb-8 pt-0">
-            <div className="absolute -top-12 left-8 w-24 h-24 bg-white rounded-xl shadow-md border border-gray-100 flex items-center justify-center text-emerald-600">
+            <div className="absolute -top-12 left-8 w-24 h-24 bg-white rounded-2xl shadow-xl border-4 border-[#1b183d] flex items-center justify-center text-emerald-600">
               <User className="w-10 h-10" />
             </div>
             
             <div className="mt-16 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-1">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-bold text-white">
                     {loading ? 'Loading...' : (profile.fullName || 'CSCCopy Operator')}
                   </h2>
                   {profile.businessName ? (
-                    <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200 flex items-center gap-1">
+                    <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-400/40 flex items-center gap-1">
                       <Building2 className="w-3.5 h-3.5" />
                       {profile.businessName}
                     </span>
                   ) : (
-                    <span className="px-3 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-full border border-amber-200">
+                    <span className="px-3 py-1 bg-amber-500/20 text-amber-300 text-xs font-bold rounded-full border border-amber-400/30">
                       Business name pending
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-4 text-gray-500 font-medium text-sm pt-1 flex-wrap">
+                <div className="flex items-center gap-4 text-indigo-200/80 font-medium text-sm pt-1 flex-wrap">
                   <div className="flex items-center gap-1.5">
-                    <Mail className="w-4 h-4 text-gray-400" />
+                    <Mail className="w-4 h-4 text-indigo-400" />
                     <span>{loading ? '...' : (profile.email || 'No email')}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Phone className="w-4 h-4 text-gray-400" />
+                    <Phone className="w-4 h-4 text-indigo-400" />
                     <span>{loading ? '...' : profile.phone}</span>
                   </div>
                 </div>
@@ -227,7 +227,7 @@ function ProfileContent() {
                 {!isEditing && (
                   <Button 
                     onClick={handleStartEdit} 
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-2"
+                    className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold shadow-md flex items-center gap-2 rounded-xl cursor-pointer"
                   >
                     <Edit3 className="w-4 h-4" />
                     Edit Profile
@@ -236,7 +236,7 @@ function ProfileContent() {
                 <Button 
                   onClick={handleSignOut} 
                   variant="outline" 
-                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                  className="text-rose-300 border-rose-500/30 hover:bg-rose-500/15 hover:text-rose-200 rounded-xl cursor-pointer"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
@@ -247,13 +247,13 @@ function ProfileContent() {
         </Card>
 
         {/* Business & Operator Details (Editable Form) */}
-        <Card className="border-gray-200 shadow-sm bg-white ring-1 ring-gray-900/5">
-          <CardHeader className="border-b border-gray-100 pb-4 flex flex-row items-center justify-between">
-            <div className="flex items-center gap-2 text-gray-800">
-              <Building2 className="w-5 h-5 text-emerald-600" />
+        <Card className="border border-indigo-400/25 shadow-lg bg-[#1b183d]/90 text-white rounded-3xl">
+          <CardHeader className="border-b border-indigo-500/20 pb-4 flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2 text-white">
+              <Building2 className="w-5 h-5 text-emerald-400" />
               <div>
-                <CardTitle className="text-lg">Business & Operator Details</CardTitle>
-                <CardDescription className="text-xs text-gray-500">
+                <CardTitle className="text-lg font-bold">Business & Operator Details</CardTitle>
+                <CardDescription className="text-xs text-indigo-200/70">
                   {isEditing ? 'Update your personal and business details below.' : 'Your registered details for services.'}
                 </CardDescription>
               </div>
@@ -263,7 +263,7 @@ function ProfileContent() {
                 onClick={handleStartEdit} 
                 variant="ghost" 
                 size="sm" 
-                className="text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 text-xs font-semibold gap-1.5"
+                className="text-emerald-300 hover:text-white hover:bg-emerald-500/20 text-xs font-semibold gap-1.5 cursor-pointer rounded-xl"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 Edit
@@ -277,15 +277,15 @@ function ProfileContent() {
                   
                   {/* Operator Full Name (Editable) */}
                   <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                      <User className="w-4 h-4 text-emerald-600" />
-                      Operator Full Name <span className="text-red-500">*</span>
+                    <Label htmlFor="fullName" className="text-sm font-semibold text-indigo-200 flex items-center gap-1.5">
+                      <User className="w-4 h-4 text-emerald-400" />
+                      Operator Full Name <span className="text-rose-400">*</span>
                     </Label>
                     <Input
                       id="fullName"
                       type="text"
                       placeholder="e.g. Rahul Patil"
-                      className="h-12 bg-white border-gray-300 focus-visible:ring-emerald-600 text-gray-900 rounded-xl"
+                      className="h-12 bg-[#0f0d26] border border-indigo-400/30 text-white placeholder-indigo-300/40 focus:border-emerald-400 rounded-xl"
                       value={editFullName}
                       onChange={(e) => setEditFullName(e.target.value)}
                       required
@@ -294,15 +294,15 @@ function ProfileContent() {
 
                   {/* Business / Center Name (Editable) */}
                   <div className="space-y-2">
-                    <Label htmlFor="businessName" className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                      <Building2 className="w-4 h-4 text-emerald-600" />
-                      Business / Center Name <span className="text-red-500">*</span>
+                    <Label htmlFor="businessName" className="text-sm font-semibold text-indigo-200 flex items-center gap-1.5">
+                      <Building2 className="w-4 h-4 text-emerald-400" />
+                      Business / Center Name <span className="text-rose-400">*</span>
                     </Label>
                     <Input
                       id="businessName"
                       type="text"
                       placeholder="e.g. Rahul Computers / CSC Center"
-                      className="h-12 bg-white border-gray-300 focus-visible:ring-emerald-600 text-gray-900 rounded-xl"
+                      className="h-12 bg-[#0f0d26] border border-indigo-400/30 text-white placeholder-indigo-300/40 focus:border-emerald-400 rounded-xl"
                       value={editBusinessName}
                       onChange={(e) => setEditBusinessName(e.target.value)}
                       required
@@ -311,15 +311,15 @@ function ProfileContent() {
 
                   {/* Email Address (Editable) */}
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                      <Mail className="w-4 h-4 text-emerald-600" />
+                    <Label htmlFor="email" className="text-sm font-semibold text-indigo-200 flex items-center gap-1.5">
+                      <Mail className="w-4 h-4 text-emerald-400" />
                       Email Address
                     </Label>
                     <Input
                       id="email"
                       type="email"
                       placeholder="e.g. operator@gmail.com"
-                      className="h-12 bg-white border-gray-300 focus-visible:ring-emerald-600 text-gray-900 rounded-xl"
+                      className="h-12 bg-[#0f0d26] border border-indigo-400/30 text-white placeholder-indigo-300/40 focus:border-emerald-400 rounded-xl"
                       value={editEmail}
                       onChange={(e) => setEditEmail(e.target.value)}
                     />
@@ -327,12 +327,12 @@ function ProfileContent() {
 
                   {/* Mobile Number (LOCKED / NON-EDITABLE) */}
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm font-semibold text-gray-700 flex items-center justify-between">
+                    <Label htmlFor="phone" className="text-sm font-semibold text-indigo-200 flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
-                        <Phone className="w-4 h-4 text-emerald-600" />
+                        <Phone className="w-4 h-4 text-emerald-400" />
                         WhatsApp Mobile Number
                       </span>
-                      <span className="text-[11px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 flex items-center gap-1 font-semibold">
+                      <span className="text-[11px] text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-400/30 flex items-center gap-1 font-semibold">
                         <Lock className="w-3 h-3" />
                         Cannot be edited
                       </span>
@@ -344,27 +344,27 @@ function ProfileContent() {
                         value={profile.phone}
                         disabled
                         readOnly
-                        className="h-12 bg-gray-100 border-gray-200 text-gray-600 font-medium rounded-xl cursor-not-allowed select-none pl-4 pr-10"
+                        className="h-12 bg-[#0f0d26]/60 border border-indigo-500/20 text-indigo-300/80 font-medium rounded-xl cursor-not-allowed select-none pl-4 pr-10"
                       />
                       <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
-                        <Lock className="w-4 h-4 text-gray-400" />
+                        <Lock className="w-4 h-4 text-indigo-400" />
                       </div>
                     </div>
-                    <p className="text-[11px] text-gray-400">
+                    <p className="text-[11px] text-indigo-300/60">
                       Mobile number is verified via WhatsApp OTP and cannot be modified.
                     </p>
                   </div>
 
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-indigo-500/20">
                   {!isIncomplete && (
                     <Button 
                       type="button" 
                       variant="outline" 
                       onClick={handleCancelEdit}
                       disabled={saving}
-                      className="rounded-xl px-5 h-11"
+                      className="rounded-xl px-5 h-11 bg-indigo-950/80 border-indigo-400/30 text-indigo-200 hover:text-white cursor-pointer"
                     >
                       <X className="w-4 h-4 mr-1.5" />
                       Cancel
@@ -373,7 +373,7 @@ function ProfileContent() {
                   <Button 
                     type="submit" 
                     disabled={saving || !editFullName.trim() || !editBusinessName.trim()}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-6 h-11 shadow-sm font-semibold"
+                    className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold rounded-xl px-6 h-11 shadow-lg shadow-emerald-500/25 cursor-pointer"
                   >
                     {saving ? (
                       <>
@@ -391,26 +391,26 @@ function ProfileContent() {
               </form>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Operator Name</p>
-                  <p className="font-bold text-gray-900 text-base">{loading ? '...' : (profile.fullName || 'Not provided')}</p>
+                <div className="bg-[#13112c]/90 p-4 rounded-xl border border-indigo-400/20">
+                  <p className="text-xs text-indigo-300/70 font-semibold uppercase tracking-wider mb-1">Operator Name</p>
+                  <p className="font-bold text-white text-base">{loading ? '...' : (profile.fullName || 'Not provided')}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Business / Center Name</p>
-                  <p className="font-bold text-gray-900 text-base">{loading ? '...' : (profile.businessName || 'Not provided')}</p>
+                <div className="bg-[#13112c]/90 p-4 rounded-xl border border-indigo-400/20">
+                  <p className="text-xs text-indigo-300/70 font-semibold uppercase tracking-wider mb-1">Business / Center Name</p>
+                  <p className="font-bold text-white text-base">{loading ? '...' : (profile.businessName || 'Not provided')}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Email Address</p>
-                  <p className="font-bold text-gray-900 text-base">{loading ? '...' : (profile.email || 'Not provided')}</p>
+                <div className="bg-[#13112c]/90 p-4 rounded-xl border border-indigo-400/20">
+                  <p className="text-xs text-indigo-300/70 font-semibold uppercase tracking-wider mb-1">Email Address</p>
+                  <p className="font-bold text-white text-base">{loading ? '...' : (profile.email || 'Not provided')}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <div className="bg-[#13112c]/90 p-4 rounded-xl border border-indigo-400/20">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">WhatsApp Mobile</p>
-                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Verified</span>
+                    <p className="text-xs text-indigo-300/70 font-semibold uppercase tracking-wider">WhatsApp Mobile</p>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold px-2 py-0.5 rounded-full">Verified</span>
                   </div>
-                  <p className="font-bold text-gray-900 text-base flex items-center gap-2">
+                  <p className="font-bold text-white text-base flex items-center gap-2">
                     {loading ? '...' : profile.phone}
-                    <Lock className="w-3.5 h-3.5 text-gray-400" />
+                    <Lock className="w-3.5 h-3.5 text-indigo-400" />
                   </p>
                 </div>
               </div>
@@ -419,24 +419,24 @@ function ProfileContent() {
         </Card>
 
         {/* Security & Plan Card */}
-        <Card className="border-gray-200 shadow-sm bg-white ring-1 ring-gray-900/5">
-          <CardHeader className="border-b border-gray-100 pb-4">
-            <div className="flex items-center gap-2 text-gray-800">
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              <CardTitle className="text-lg">Security & Plan</CardTitle>
+        <Card className="border border-indigo-400/25 shadow-lg bg-[#1b183d]/90 text-white rounded-3xl">
+          <CardHeader className="border-b border-indigo-500/20 pb-4">
+            <div className="flex items-center gap-2 text-white">
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <CardTitle className="text-lg font-bold">Security & Plan</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <p className="text-sm text-gray-500 font-medium mb-1">Current Plan</p>
-                <p className="font-bold text-gray-900">Standard Retailer</p>
+              <div className="bg-[#13112c]/90 p-4 rounded-xl border border-indigo-400/20">
+                <p className="text-sm text-indigo-200/80 font-medium mb-1">Current Plan</p>
+                <p className="font-bold text-white">Standard Retailer</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <p className="text-sm text-gray-500 font-medium mb-1">Account Status</p>
+              <div className="bg-[#13112c]/90 p-4 rounded-xl border border-indigo-400/20">
+                <p className="text-sm text-indigo-200/80 font-medium mb-1">Account Status</p>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <p className="font-bold text-gray-900">Active & Verified via WhatsApp</p>
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-xs"></div>
+                  <p className="font-bold text-white">Active & Verified via WhatsApp</p>
                 </div>
               </div>
             </div>

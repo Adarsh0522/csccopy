@@ -127,13 +127,17 @@ export default function PVCPrintStudioPage() {
     async function loadInitialData() {
       try {
         const supabase = createClient()
-        const { data: srvData } = await supabase
+        const { data: allSrv } = await supabase
           .from('services')
-          .select('price')
-          .ilike('title', '%pvc%')
-          .maybeSingle()
-        if (srvData?.price != null) {
-          setPvcPrice(Number(srvData.price))
+          .select('price, title, form_schema')
+
+        const pvcMatch = allSrv?.find((s: any) => 
+          s.form_schema?.[0]?.core_tool === 'pvc_print' || 
+          s.title?.toLowerCase().trim() === 'pvc print' ||
+          (s.title?.toLowerCase().includes('pvc') && s.price < 100)
+        )
+        if (pvcMatch?.price != null) {
+          setPvcPrice(Number(pvcMatch.price))
         }
 
         const { data: { user } } = await supabase.auth.getUser()
@@ -556,19 +560,19 @@ export default function PVCPrintStudioPage() {
       )}
 
       {/* TOP BAR: Title & Document Type Tabs */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[#1b183d]/90 backdrop-blur-md rounded-2xl border border-indigo-400/25 p-4 sm:p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-white">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/25 font-bold">
             <IdCard className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
               PVC Card Studio
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
                 ₹{pvcPrice} per card
               </span>
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-indigo-200/80 mt-0.5">
               Precision CR80 card formatting and 5-card batch A4 dragon sheet print engine.
             </p>
           </div>
@@ -587,8 +591,8 @@ export default function PVCPrintStudioPage() {
                 }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                   isActive
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200 hover:text-slate-900'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold shadow-md'
+                    : 'bg-[#13112c] text-indigo-200 hover:bg-indigo-500/15 border border-indigo-400/20 hover:text-white'
                 }`}
               >
                 {type}
@@ -606,7 +610,7 @@ export default function PVCPrintStudioPage() {
           
           {/* 1. Compact Upload & Unlock Bar */}
           {!isManual ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
+            <div className="bg-[#1b183d]/90 rounded-2xl border border-indigo-400/25 p-4 shadow-xl space-y-3 text-white">
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 
                 {/* File Dropzone Input */}
@@ -617,14 +621,14 @@ export default function PVCPrintStudioPage() {
                     onChange={handleFileChange}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full z-10"
                   />
-                  <div className="border-2 border-dashed border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs transition-colors">
-                    <div className="flex items-center gap-2 text-slate-700 truncate pr-2">
-                      <Upload className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <div className="border-2 border-dashed border-indigo-400/40 bg-[#13112c]/70 hover:bg-[#13112c] rounded-xl px-4 py-2.5 flex items-center justify-between text-xs transition-colors">
+                    <div className="flex items-center gap-2 text-indigo-100 truncate pr-2">
+                      <Upload className="w-4 h-4 text-emerald-400 shrink-0" />
                       <span className="font-semibold truncate">
                         {file ? file.name : `Select or drop ${docType} PDF`}
                       </span>
                     </div>
-                    <span className="text-[11px] font-bold text-emerald-700 bg-white px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
+                    <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/20 px-2.5 py-0.5 rounded-md border border-emerald-400/30 shrink-0">
                       Browse
                     </span>
                   </div>
@@ -633,17 +637,17 @@ export default function PVCPrintStudioPage() {
                 {/* Password input (appears or highlights when password protected) */}
                 <form onSubmit={handlePasswordSubmit} className="flex items-center gap-2 sm:w-64">
                   <div className="relative flex-1">
-                    <KeyRound className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <KeyRound className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-indigo-300" />
                     <Input
                       ref={passwordInputRef}
                       type="password"
                       placeholder="PDF Password..."
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className={`pl-8 h-10 text-xs rounded-xl bg-slate-50 border ${
+                      className={`pl-8 h-10 text-xs rounded-xl bg-[#0f0d26] text-white placeholder:text-indigo-300/40 border ${
                         needsPassword 
-                          ? 'border-red-400 ring-2 ring-red-400/20 bg-red-50/30' 
-                          : 'border-slate-200'
+                          ? 'border-red-400 ring-2 ring-red-400/20 bg-red-950/30' 
+                          : 'border-indigo-400/30 focus:border-emerald-400'
                       }`}
                     />
                   </div>
@@ -651,7 +655,7 @@ export default function PVCPrintStudioPage() {
                     type="submit"
                     disabled={isProcessing || !file}
                     size="sm"
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-10 px-3.5 rounded-xl shadow-xs shrink-0"
+                    className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-xs h-10 px-3.5 rounded-xl shadow-xs shrink-0"
                   >
                     {isProcessing ? (
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -668,84 +672,84 @@ export default function PVCPrintStudioPage() {
                   size="sm"
                   onClick={() => setIsCropModalOpen(true)}
                   disabled={!pdfCanvasRef.current}
-                  className="h-10 text-xs font-bold rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 shrink-0 gap-1.5"
+                  className="h-10 text-xs font-bold rounded-xl border-indigo-400/30 bg-[#13112c] text-indigo-100 hover:bg-indigo-500/20 hover:text-white shrink-0 gap-1.5"
                 >
-                  <Sliders className="w-3.5 h-3.5 text-emerald-600" />
+                  <Sliders className="w-3.5 h-3.5 text-emerald-400" />
                   <span className="hidden sm:inline">Fine-Tune</span>
                 </Button>
               </div>
 
               {/* Password or Extraction Error Helper */}
               {pdfError && (
-                <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <div className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                   <span>{pdfError}</span>
                 </div>
               )}
             </div>
           ) : (
             /* Manual Card Maker Form UI */
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-emerald-600" />
+            <div className="bg-[#1b183d]/90 rounded-2xl border border-indigo-400/25 p-5 shadow-xl space-y-4 text-white">
+              <div className="flex items-center justify-between border-b border-indigo-500/20 pb-2">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-emerald-400" />
                   Manual Card Details Form
                 </span>
-                <span className="text-[11px] text-slate-400">Directly maps to PVC Canvas</span>
+                <span className="text-[11px] text-indigo-300/70">Directly maps to PVC Canvas</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-600">Card Header / Title</Label>
+                  <Label className="text-xs text-indigo-200">Card Header / Title</Label>
                   <Input 
                     value={manualTitle} 
                     onChange={(e) => setManualTitle(e.target.value)} 
                     placeholder="e.g. STUDENT / EMPLOYEE ID"
-                    className="h-9 text-xs rounded-xl"
+                    className="h-9 text-xs rounded-xl bg-[#0f0d26] border-indigo-400/30 text-white placeholder:text-indigo-300/40 focus:border-emerald-400"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-600">Upload Photo</Label>
+                  <Label className="text-xs text-indigo-200">Upload Photo</Label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleManualPhotoUpload}
-                    className="flex h-9 w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-2 py-1 text-xs file:border-0 file:bg-emerald-50 file:text-emerald-700 file:rounded-md file:text-[10px] file:font-bold"
+                    className="flex h-9 w-full bg-[#0f0d26] border border-indigo-400/30 text-white rounded-xl px-2 py-1 text-xs file:border-0 file:bg-emerald-500/20 file:text-emerald-300 file:rounded-md file:text-[10px] file:font-bold"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-600">Full Name</Label>
+                  <Label className="text-xs text-indigo-200">Full Name</Label>
                   <Input 
                     value={manualName} 
                     onChange={(e) => setManualName(e.target.value)} 
                     placeholder="Full Name (English / Regional)"
-                    className="h-9 text-xs rounded-xl"
+                    className="h-9 text-xs rounded-xl bg-[#0f0d26] border-indigo-400/30 text-white placeholder:text-indigo-300/40 focus:border-emerald-400"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-600">ID / Card Number</Label>
+                  <Label className="text-xs text-indigo-200">ID / Card Number</Label>
                   <Input 
                     value={manualIdNumber} 
                     onChange={(e) => setManualIdNumber(e.target.value)} 
                     placeholder="e.g. MH0420230012345"
-                    className="h-9 text-xs rounded-xl"
+                    className="h-9 text-xs rounded-xl bg-[#0f0d26] border-indigo-400/30 text-white placeholder:text-indigo-300/40 focus:border-emerald-400"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-600">DOB (DD/MM/YYYY)</Label>
+                  <Label className="text-xs text-indigo-200">DOB (DD/MM/YYYY)</Label>
                   <Input 
                     value={manualDob} 
                     onChange={(e) => setManualDob(e.target.value)} 
                     placeholder="01/01/1995"
-                    className="h-9 text-xs rounded-xl"
+                    className="h-9 text-xs rounded-xl bg-[#0f0d26] border-indigo-400/30 text-white placeholder:text-indigo-300/40 focus:border-emerald-400"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-600">Gender</Label>
+                  <Label className="text-xs text-indigo-200">Gender</Label>
                   <select 
                     value={manualGender} 
                     onChange={(e) => setManualGender(e.target.value)}
-                    className="h-9 w-full rounded-xl border border-slate-200 bg-white text-xs px-2"
+                    className="h-9 w-full rounded-xl border border-indigo-400/30 bg-[#0f0d26] text-white text-xs px-2 focus:border-emerald-400"
                   >
                     <option value="MALE">MALE / पुरुष</option>
                     <option value="FEMALE">FEMALE / स्त्री</option>
@@ -753,12 +757,12 @@ export default function PVCPrintStudioPage() {
                   </select>
                 </div>
                 <div className="sm:col-span-2 space-y-1">
-                  <Label className="text-xs text-slate-600">Full Address</Label>
+                  <Label className="text-xs text-indigo-200">Full Address</Label>
                   <Input 
                     value={manualAddress} 
                     onChange={(e) => setManualAddress(e.target.value)} 
                     placeholder="Permanent Address Line, City, State - PIN"
-                    className="h-9 text-xs rounded-xl"
+                    className="h-9 text-xs rounded-xl bg-[#0f0d26] border-indigo-400/30 text-white placeholder:text-indigo-300/40 focus:border-emerald-400"
                   />
                 </div>
               </div>
@@ -766,23 +770,23 @@ export default function PVCPrintStudioPage() {
           )}
 
           {/* 2. Live Dual Canvas Preview (Front & Back at 1011px x 638px scaled down with CSS) */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
+          <div className="bg-[#1b183d]/90 rounded-3xl border border-indigo-400/25 p-5 shadow-xl space-y-4 text-white">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-800 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-600" />
+              <span className="text-xs font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-400" />
                 Live Dual Canvas Preview (CR80 Standard PVC - 300 DPI)
               </span>
-              <span className="text-[11px] font-mono text-slate-400">1011 × 638 px</span>
+              <span className="text-[11px] font-mono text-indigo-300/70">1011 × 638 px</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Front Preview */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
+                <div className="flex items-center justify-between text-[11px] font-bold text-indigo-200">
                   <span>FRONT SIDE</span>
-                  <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">85.6mm</span>
+                  <span className="text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/30">85.6mm</span>
                 </div>
-                <div className="bg-slate-100 rounded-2xl p-1.5 border border-slate-200 flex items-center justify-center shadow-inner overflow-hidden">
+                <div className="bg-[#0f0d26]/80 rounded-2xl p-2 border border-indigo-400/20 flex items-center justify-center shadow-inner overflow-hidden">
                   <canvas
                     ref={frontCanvasRef}
                     className="w-full h-auto rounded-xl shadow-md border border-slate-200/60 bg-white transition-all"
@@ -792,11 +796,11 @@ export default function PVCPrintStudioPage() {
 
               {/* Back Preview */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
+                <div className="flex items-center justify-between text-[11px] font-bold text-indigo-200">
                   <span>BACK SIDE</span>
-                  <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">54.0mm</span>
+                  <span className="text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/30">54.0mm</span>
                 </div>
-                <div className="bg-slate-100 rounded-2xl p-1.5 border border-slate-200 flex items-center justify-center shadow-inner overflow-hidden">
+                <div className="bg-[#0f0d26]/80 rounded-2xl p-2 border border-indigo-400/20 flex items-center justify-center shadow-inner overflow-hidden">
                   <canvas
                     ref={backCanvasRef}
                     className="w-full h-auto rounded-xl shadow-md border border-slate-200/60 bg-white transition-all"
@@ -807,16 +811,16 @@ export default function PVCPrintStudioPage() {
           </div>
 
           {/* 3. Photo Enhancement Controls */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <Sliders className="w-4 h-4 text-emerald-600" />
+          <div className="bg-[#1b183d]/90 rounded-2xl border border-indigo-400/25 p-4 sm:p-5 shadow-xl space-y-4 text-white">
+            <div className="flex items-center justify-between border-b border-indigo-500/20 pb-2">
+              <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                <Sliders className="w-4 h-4 text-emerald-400" />
                 Photo Tuning & PVC Hologram Effects
               </span>
               <button
                 type="button"
                 onClick={() => setEnhancements({ brightness: 105, contrast: 110, scale: 100, offsetY: 0, enableGhost: true })}
-                className="text-[11px] font-semibold text-emerald-600 hover:underline"
+                className="text-[11px] font-semibold text-emerald-400 hover:underline cursor-pointer"
               >
                 Reset Sliders
               </button>
@@ -825,9 +829,9 @@ export default function PVCPrintStudioPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               {/* Brightness */}
               <div className="space-y-1.5">
-                <div className="flex justify-between font-bold text-slate-700">
+                <div className="flex justify-between font-bold text-indigo-200">
                   <span>Photo Brightness</span>
-                  <span className="font-mono text-emerald-600">{enhancements.brightness}%</span>
+                  <span className="font-mono text-emerald-400">{enhancements.brightness}%</span>
                 </div>
                 <input
                   type="range"
@@ -835,15 +839,15 @@ export default function PVCPrintStudioPage() {
                   max="150"
                   value={enhancements.brightness}
                   onChange={(e) => setEnhancements((prev) => ({ ...prev, brightness: Number(e.target.value) }))}
-                  className="w-full accent-emerald-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
+                  className="w-full accent-emerald-400 h-1.5 bg-indigo-950/80 rounded-lg cursor-pointer"
                 />
               </div>
 
               {/* Contrast */}
               <div className="space-y-1.5">
-                <div className="flex justify-between font-bold text-slate-700">
+                <div className="flex justify-between font-bold text-indigo-200">
                   <span>Photo Contrast</span>
-                  <span className="font-mono text-emerald-600">{enhancements.contrast}%</span>
+                  <span className="font-mono text-emerald-400">{enhancements.contrast}%</span>
                 </div>
                 <input
                   type="range"
@@ -851,15 +855,15 @@ export default function PVCPrintStudioPage() {
                   max="150"
                   value={enhancements.contrast}
                   onChange={(e) => setEnhancements((prev) => ({ ...prev, contrast: Number(e.target.value) }))}
-                  className="w-full accent-emerald-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
+                  className="w-full accent-emerald-400 h-1.5 bg-indigo-950/80 rounded-lg cursor-pointer"
                 />
               </div>
 
               {/* Photo Scale */}
               <div className="space-y-1.5">
-                <div className="flex justify-between font-bold text-slate-700">
+                <div className="flex justify-between font-bold text-indigo-200">
                   <span>Photo Zoom / Scale</span>
-                  <span className="font-mono text-emerald-600">{enhancements.scale}%</span>
+                  <span className="font-mono text-emerald-400">{enhancements.scale}%</span>
                 </div>
                 <input
                   type="range"
@@ -867,15 +871,15 @@ export default function PVCPrintStudioPage() {
                   max="140"
                   value={enhancements.scale}
                   onChange={(e) => setEnhancements((prev) => ({ ...prev, scale: Number(e.target.value) }))}
-                  className="w-full accent-emerald-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
+                  className="w-full accent-emerald-400 h-1.5 bg-indigo-950/80 rounded-lg cursor-pointer"
                 />
               </div>
 
               {/* Photo Offset Y */}
               <div className="space-y-1.5">
-                <div className="flex justify-between font-bold text-slate-700">
+                <div className="flex justify-between font-bold text-indigo-200">
                   <span>Center Face (Vertical Offset)</span>
-                  <span className="font-mono text-emerald-600">{enhancements.offsetY}px</span>
+                  <span className="font-mono text-emerald-400">{enhancements.offsetY}px</span>
                 </div>
                 <input
                   type="range"
@@ -883,23 +887,23 @@ export default function PVCPrintStudioPage() {
                   max="50"
                   value={enhancements.offsetY}
                   onChange={(e) => setEnhancements((prev) => ({ ...prev, offsetY: Number(e.target.value) }))}
-                  className="w-full accent-emerald-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
+                  className="w-full accent-emerald-400 h-1.5 bg-indigo-950/80 rounded-lg cursor-pointer"
                 />
               </div>
             </div>
 
             {/* Ghost Image Checkbox */}
-            <div className="pt-2 flex items-center justify-between border-t border-slate-100">
-              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+            <div className="pt-2 flex items-center justify-between border-t border-indigo-500/20">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-indigo-200">
                 <input
                   type="checkbox"
                   checked={enhancements.enableGhost}
                   onChange={(e) => setEnhancements((prev) => ({ ...prev, enableGhost: e.target.checked }))}
-                  className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                  className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 border-indigo-400/40 bg-[#0f0d26]"
                 />
                 <span>Enable PVC Ghost Image & Micro-Security Print</span>
               </label>
-              <span className="text-[11px] text-slate-400">Anti-forgery watermark</span>
+              <span className="text-[11px] text-indigo-300/60">Anti-forgery watermark</span>
             </div>
           </div>
 
@@ -908,7 +912,7 @@ export default function PVCPrintStudioPage() {
             type="button"
             onClick={handleAddToQueue}
             disabled={queuedCards.length >= 5}
-            className="w-full h-13 text-sm sm:text-base font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+            className="w-full h-13 text-sm sm:text-base font-extrabold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2"
           >
             <Plus className="w-5 h-5 stroke-[2.5]" />
             <span>Add to A4 Print Queue (Current: {queuedCards.length}/5)</span>
@@ -919,23 +923,23 @@ export default function PVCPrintStudioPage() {
         {/* RIGHT PANEL: Sticky Live A4 Print Sheet Manager (col-span-5) */}
         <div className="col-span-12 lg:col-span-5 space-y-5 lg:sticky lg:top-6">
           
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div className="bg-[#1b183d]/90 rounded-3xl border border-indigo-400/25 p-5 shadow-xl space-y-4 text-white">
             
             {/* Header & Controls */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-2 border-b border-indigo-500/20">
               <div>
-                <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-emerald-600" />
+                <h3 className="font-bold text-white text-base flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-emerald-400" />
                   A4 Print Sheet Manager
                 </h3>
-                <p className="text-xs text-slate-500">5-Slot Batch Dragon Sheet Layout</p>
+                <p className="text-xs text-indigo-200/70">5-Slot Batch Dragon Sheet Layout</p>
               </div>
 
               <div className="flex items-center gap-2">
                 <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
                   queuedCards.length > 0 
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                    : 'bg-slate-100 text-slate-500 border-slate-200'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40' 
+                    : 'bg-[#13112c] text-indigo-300/60 border-indigo-400/20'
                 }`}>
                   {queuedCards.length} / 5 Slots
                 </span>
@@ -944,7 +948,7 @@ export default function PVCPrintStudioPage() {
                     variant="ghost"
                     size="sm"
                     onClick={handleClearQueue}
-                    className="h-8 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    className="h-8 px-2 text-rose-300 hover:bg-rose-500/20 hover:text-rose-200"
                     title="Clear Sheet"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -954,7 +958,7 @@ export default function PVCPrintStudioPage() {
             </div>
 
             {/* A4 Sheet Visual Canvas Preview */}
-            <div className="bg-slate-100/90 rounded-2xl p-2.5 border border-slate-200 flex items-center justify-center shadow-inner">
+            <div className="bg-[#0f0d26]/80 rounded-2xl p-2.5 border border-indigo-400/20 flex items-center justify-center shadow-inner">
               <canvas
                 ref={a4CanvasRef}
                 className="w-full h-auto rounded-lg shadow-md border border-slate-300 bg-white max-h-[460px] object-contain transition-all"
@@ -963,7 +967,7 @@ export default function PVCPrintStudioPage() {
 
             {/* 5-Row Slot System Status List */}
             <div className="space-y-2">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-indigo-300/70 uppercase tracking-wider">
                 Slot Allocations
               </span>
 
@@ -975,22 +979,22 @@ export default function PVCPrintStudioPage() {
                       key={slotIdx}
                       className={`p-2.5 rounded-xl border text-xs flex items-center justify-between transition-all ${
                         card
-                          ? 'bg-emerald-50/50 border-emerald-200 text-slate-800'
-                          : 'bg-slate-50 border-slate-200/80 text-slate-400'
+                          ? 'bg-[#13112c] border-emerald-500/40 text-white'
+                          : 'bg-[#13112c]/50 border-indigo-400/20 text-indigo-300/40'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 truncate">
                         <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold ${
-                          card ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'
+                          card ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40' : 'bg-[#0f0d26] text-indigo-300/60'
                         }`}>
                           {slotIdx + 1}
                         </span>
                         {card ? (
                           <div className="truncate">
-                            <span className="font-bold text-slate-900 truncate block">
+                            <span className="font-bold text-white truncate block">
                               {card.customerName || card.docType}
                             </span>
-                            <span className="text-[10px] text-slate-500">{card.docType} • {card.addedAt}</span>
+                            <span className="text-[10px] text-indigo-200/70">{card.docType} • {card.addedAt}</span>
                           </div>
                         ) : (
                           <span className="font-medium italic">Empty Slot</span>
@@ -1001,7 +1005,7 @@ export default function PVCPrintStudioPage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveQueuedCard(card.id)}
-                          className="text-slate-400 hover:text-red-600 p-1 rounded-md transition-colors"
+                          className="text-indigo-300/60 hover:text-rose-400 p-1 rounded-md transition-colors"
                           title="Remove from slot"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1014,14 +1018,14 @@ export default function PVCPrintStudioPage() {
             </div>
 
             {/* Final Export Bar */}
-            <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row gap-2.5">
+            <div className="pt-2 border-t border-indigo-500/20 flex flex-col sm:flex-row gap-2.5">
               <Button
                 type="button"
                 onClick={handleDownloadA4Pdf}
                 disabled={queuedCards.length === 0}
-                className="flex-1 h-11 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs gap-2"
+                className="flex-1 h-11 bg-[#0f0d26] hover:bg-[#13112c] border border-indigo-400/30 text-white font-bold text-xs rounded-xl shadow-xs gap-2 transition-all"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-4 h-4 text-indigo-200" />
                 <span>Download A4 PDF</span>
               </Button>
 
@@ -1029,7 +1033,7 @@ export default function PVCPrintStudioPage() {
                 type="button"
                 onClick={handleDirectPrint}
                 disabled={queuedCards.length === 0}
-                className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs gap-2"
+                className="flex-1 h-11 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-500/20 gap-2 transition-all"
               >
                 <Printer className="w-4 h-4" />
                 <span>Print Sheet Directly</span>
