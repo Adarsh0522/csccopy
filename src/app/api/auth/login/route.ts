@@ -16,6 +16,15 @@ export async function POST(req: Request) {
 
     const supabase = await createClient()
 
+    // 1. Check RPC check_user_auth
+    let rpcCheck: any = null
+    try {
+      const { data: rpcData } = await supabase.rpc('check_user_auth', { p_phone: formattedPhone })
+      if (rpcData && typeof rpcData === 'object') {
+        rpcCheck = rpcData
+      }
+    } catch {}
+
     // Query user in public.users
     const { data: user, error: dbError } = await supabase
       .from('users')
@@ -31,40 +40,49 @@ export async function POST(req: Request) {
     if (user) {
       // Legacy user who hasn't set a password yet
       if (!user.password_hash || user.password_hash.trim().length === 0) {
-        return NextResponse.json({
-          requiresPasswordSetup: true,
-          phone: formattedPhone,
-          message: 'Existing user detected. Please verify with WhatsApp OTP to set your password.'
-        })
+        if (!rpcCheck || !rpcCheck.has_password) {
+          return NextResponse.json({
+            requiresPasswordSetup: true,
+            phone: formattedPhone,
+            message: 'Existing user detected. Please verify with WhatsApp OTP to set your password.'
+          })
+        }
       }
 
       // Password exists: verify with bcrypt
-      const isValid = await bcrypt.compare(password, user.password_hash)
-      if (!isValid) {
-        return NextResponse.json({
-          error: 'Invalid password. Please check your password or use "Forgot / Set Password?".'
-        }, { status: 400 })
-      }
-
-      // Password matches!
-      return NextResponse.json({
-        success: true,
-        phone: formattedPhone,
-        user: {
-          id: user.id,
-          full_name: user.full_name || 'CSC Operator'
+      if (user.password_hash) {
+        const isValid = await bcrypt.compare(password, user.password_hash)
+        if (!isValid) {
+          return NextResponse.json({
+            error: 'Invalid password. Please check your password or use "Forgot / Set Password?".'
+          }, { status: 400 })
         }
+
+        // Password matches!
+        return NextResponse.json({
+          success: true,
+          phone: formattedPhone,
+          user: {
+            id: user.id,
+            full_name: user.full_name || 'CSC Operator'
+          }
+        })
+      }
+    }
+
+    // Case 2: User exists in auth.users as legacy OTP-only user
+    if (rpcCheck?.exists && !rpcCheck?.has_password) {
+      return NextResponse.json({
+        requiresPasswordSetup: true,
+        phone: formattedPhone,
+        message: 'Existing user detected. Please verify with WhatsApp OTP to set your password.'
       })
     }
 
-    // Case 2: User not found in public.users table yet
-    // They may be a legacy user in auth.users whose public.users record is pending migration.
     return NextResponse.json({
-      requiresPasswordSetup: true,
-      phone: formattedPhone,
-      isLegacyCheck: true,
-      message: 'Existing user check required.'
-    })
+      requiresPasswordSetup: false,
+      error: 'Invalid mobile number or password.'
+    }, { status: 400 })
   } catch (err: any) {
     console.error('Login error:', err)
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 })

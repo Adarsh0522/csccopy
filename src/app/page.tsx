@@ -121,25 +121,57 @@ export default function HomePage() {
     try {
       const formattedPhone = getE164Phone()
 
-      // Call our secure backend API to check credentials & legacy status
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: formattedPhone, password })
+      // 1. Direct login attempt via Supabase GoTrue Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        phone: formattedPhone,
+        password: password
       })
 
-      const data = await res.json()
+      // CASE 1: Password matched in Supabase Auth!
+      if (!authError && authData.user) {
+        // Sync profile & password_hash in background
+        fetch('/api/auth/save-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: authData.user.id,
+            phone: formattedPhone,
+            fullName: authData.user.user_metadata?.full_name || 'CSC Operator',
+            password: password
+          })
+        }).catch(() => {})
 
-      // CASE 2: Legacy OTP-Only User Migration
-      if (data.requiresPasswordSetup) {
-        // Trigger WhatsApp OTP to their phone so they can set password
+        router.push('/dashboard')
+        router.refresh()
+        return
+      }
+
+      // CASE 2: signInWithPassword failed. Let's inspect why.
+      console.warn('signInWithPassword failed:', authError?.message)
+
+      // Check user existence and whether they ever set a password
+      const checkRes = await fetch('/api/auth/check-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formattedPhone })
+      })
+      const checkData = await checkRes.json()
+
+      // If user does not exist in system:
+      if (!checkData.exists) {
+        setError('No account found with this mobile number. Please register first.')
+        setLoading(false)
+        return
+      }
+
+      // If user exists and is a LEGACY OTP-only user who NEVER set a password:
+      if (checkData.exists && checkData.hasPassword === false) {
         const { error: otpError } = await supabase.auth.signInWithOtp({
           phone: formattedPhone,
           options: { shouldCreateUser: false }
         })
 
         if (otpError) {
-          // If Supabase says user does not exist in auth either:
           if (otpError.message.toLowerCase().includes('user not found') || (otpError as any).status === 422) {
             setError('No account found with this mobile number. Please register first.')
             setLoading(false)
@@ -151,45 +183,29 @@ export default function HomePage() {
         // Switch to legacy setup view
         setMode('legacy-setup')
         setResendCountdown(60)
-        setSuccessMessage('Existing account verified! We have sent a WhatsApp OTP to set your new password.')
+        setSuccessMessage('Existing account verified! We have sent a WhatsApp OTP to set your password.')
         setLoading(false)
         return
       }
 
-      // Check if backend returned invalid password
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Invalid mobile number or password')
-      }
-
-      // CASE 1: Password matched in database!
-      // Sign in to Supabase GoTrue Auth to establish the session cookies for /dashboard
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        phone: formattedPhone,
-        password: password
+      // If user already has a password, try backend bcrypt fallback
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formattedPhone, password })
       })
+      const loginData = await loginRes.json()
 
-      if (authError) {
-        // Fallback: If auth.users password was not synchronized yet, trigger quick WhatsApp OTP setup
-        console.warn('GoTrue signInWithPassword error, migrating auth password:', authError.message)
-        const { error: otpErr } = await supabase.auth.signInWithOtp({
-          phone: formattedPhone,
-          options: { shouldCreateUser: false }
-        })
-        if (!otpErr) {
-          setMode('legacy-setup')
-          setResendCountdown(60)
-          setSuccessMessage('Please verify your WhatsApp OTP to complete password synchronization.')
-          setLoading(false)
-          return
-        }
-        throw authError
-      }
-
-      // Login successful!
-      if (authData.user) {
+      if (loginData.success) {
+        // Password matched backend hash! Sync Supabase Auth password & proceed
+        await supabase.auth.updateUser({ password: password }).catch(() => {})
         router.push('/dashboard')
         router.refresh()
+        return
       }
+
+      // The password entered is incorrect
+      setError('Invalid password. Please check your password or use "Forgot / Set Password?".')
     } catch (err: any) {
       console.error('Login error:', err)
       setError(err.message || 'Login failed. Please check your credentials.')
@@ -296,12 +312,13 @@ export default function HomePage() {
       }
 
       // 2. Set the permanent password in Supabase Auth
-      await supabase.auth.updateUser({
+      const { error: updatePassError } = await supabase.auth.updateUser({
         password: password,
         data: {
           full_name: fullName.trim()
         }
       })
+      if (updatePassError) throw updatePassError
 
       // 3. Save password hash and user info in public.users via backend API
       await fetch('/api/auth/save-user', {
@@ -408,9 +425,10 @@ export default function HomePage() {
       }
 
       // 2. Update password in Supabase Auth
-      await supabase.auth.updateUser({
+      const { error: updatePassError } = await supabase.auth.updateUser({
         password: password
       })
+      if (updatePassError) throw updatePassError
 
       // 3. Update password_hash in public.users via backend API
       await fetch('/api/auth/save-user', {
@@ -477,9 +495,10 @@ export default function HomePage() {
       }
 
       // 2. Set permanent password in Supabase Auth
-      await supabase.auth.updateUser({
+      const { error: updatePassError } = await supabase.auth.updateUser({
         password: password
       })
+      if (updatePassError) throw updatePassError
 
       // 3. Save to public.users table
       await fetch('/api/auth/save-user', {

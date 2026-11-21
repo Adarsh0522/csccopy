@@ -14,7 +14,25 @@ export async function POST(req: Request) {
 
     const supabase = await createClient()
 
-    // 1. Check if user exists in public.users
+    // 1. Try RPC check_user_auth (checks auth.users & public.users via SECURITY DEFINER)
+    try {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('check_user_auth', {
+        p_phone: formattedPhone
+      })
+      if (!rpcError && rpcData && typeof rpcData === 'object' && rpcData.exists !== undefined) {
+        return NextResponse.json({
+          exists: Boolean(rpcData.exists),
+          hasPassword: Boolean(rpcData.has_password),
+          requiresPasswordSetup: Boolean(rpcData.exists && !rpcData.has_password),
+          phone: formattedPhone,
+          fullName: rpcData.full_name || 'CSC Operator'
+        })
+      }
+    } catch (rpcErr) {
+      // RPC not yet deployed, fallback to public.users
+    }
+
+    // 2. Fallback check in public.users
     const { data: user, error } = await supabase
       .from('users')
       .select('id, phone, full_name, password_hash')
@@ -36,11 +54,11 @@ export async function POST(req: Request) {
       })
     }
 
-    // If not found in public.users, they might still be a registered auth user (legacy) or a new user
+    // Default response if not found in public tables
     return NextResponse.json({
       exists: false,
       hasPassword: false,
-      requiresPasswordSetup: true,
+      requiresPasswordSetup: false,
       phone: formattedPhone
     })
   } catch (err: any) {

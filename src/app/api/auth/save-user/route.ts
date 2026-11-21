@@ -18,7 +18,19 @@ export async function POST(req: Request) {
 
     const supabase = await createClient()
 
-    // 1. Upsert user in public.users
+    // 1. Try RPC save_user_password (SECURITY DEFINER bypasses RLS safely)
+    try {
+      await supabase.rpc('save_user_password', {
+        p_user_id: userId,
+        p_phone: formattedPhone,
+        p_full_name: fullName?.trim() || 'CSC Operator',
+        p_password_hash: password_hash
+      })
+    } catch (rpcErr) {
+      console.warn('RPC save_user_password not available yet:', rpcErr)
+    }
+
+    // 2. Upsert user in public.users on PRIMARY KEY 'id' (id is always unique)
     const userPayload: Record<string, any> = {
       id: userId,
       phone: formattedPhone,
@@ -31,26 +43,35 @@ export async function POST(req: Request) {
 
     let { error: userError } = await supabase
       .from('users')
-      .upsert(userPayload, { onConflict: 'phone' })
+      .upsert(userPayload, { onConflict: 'id' })
 
-    // Fallback: if remote Supabase schema doesn't have business_name or email yet
-    if (userError && userError.message?.includes('business_name')) {
-      delete userPayload.business_name
-      const retry = await supabase.from('users').upsert(userPayload, { onConflict: 'phone' })
-      userError = retry.error
-    }
-    if (userError && userError.message?.includes('email')) {
-      delete userPayload.email
-      const retry = await supabase.from('users').upsert(userPayload, { onConflict: 'phone' })
-      userError = retry.error
-    }
-
+    // If upsert failed due to missing columns or constraints, try basic update
     if (userError) {
-      console.error('Error saving user to public.users:', userError)
-      // Do not block login completely if table is pending migration, but report
+      console.warn('Upsert on id warning, attempting update:', userError.message)
+      const cleanPayload = {
+        password_hash: password_hash,
+        phone: formattedPhone,
+        full_name: fullName?.trim() || 'CSC Operator',
+        updated_at: new Date().toISOString()
+      }
+
+      const { error: updateError } = await supabase
+        .from('users')
+        .update(cleanPayload)
+        .or(`id.eq.${userId},phone.eq.${formattedPhone},phone.eq.${clean}`)
+
+      if (updateError) {
+        console.warn('Update fallback warning, trying insert:', updateError.message)
+        await supabase.from('users').insert({
+          id: userId,
+          phone: formattedPhone,
+          full_name: fullName?.trim() || 'CSC Operator',
+          password_hash: password_hash
+        })
+      }
     }
 
-    // 2. Ensure wallet exists
+    // 3. Ensure wallet exists
     try {
       const { data: existingWallet } = await supabase
         .from('wallet')
